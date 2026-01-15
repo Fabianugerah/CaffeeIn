@@ -125,7 +125,7 @@ export default function LoginPage() {
         <div className="w-full md:w-[45%] bg-black/60 backdrop-blur-sm p-6 sm:p-8 md:p-10 flex flex-col justify-between">
           {/* Logo */}
           <div className="text-orange-600 mb-16 font-bold text-2xl tracking-tight">
-            Ordly
+            CaffeeIn
           </div>
 
           <div className="flex flex-col">

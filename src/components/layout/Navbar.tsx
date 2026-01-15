@@ -58,7 +58,7 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
           </button>
 
           <div className="text-orange-600 font-bold text-2xl tracking-tight">
-            Ordly
+            CaffeeIn
           </div>
         </div>
 

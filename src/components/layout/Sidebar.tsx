@@ -45,6 +45,20 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     }
   };
 
+  // Role to URL mapping (untuk role yang berbeda dengan URL path)
+  const roleToUrlMap: { [key: string]: string } = {
+    administrator: 'admin',
+    waiter: 'waiter',
+    kasir: 'kasir',
+    owner: 'owner',
+    customer: 'customer',
+  };
+
+  // Get the correct URL path based on role
+  const getRoleUrl = () => {
+    return role ? roleToUrlMap[role] || role : '';
+  };
+
   // Main menu items based on role
   const mainMenuItems = {
     administrator: [
@@ -136,7 +150,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                       onClick={onClose}
                       className={`group relative flex items-center gap-3 p-3 rounded-xl transition-all duration-200 ${isActive
                         ? 'bg-gradient-to-b from-neutral-300/10 via-neutral-300/5 to-neutral-800/20 text-white shadow-lg shadow-black/10'
-                        : 'text-neutral-400 hover:text-white hover:bg-neutral-800/50'
+                        : 'text-neutral-600 hover:text-white hover:bg-neutral-800/50'
                         }`}
                     >
                       {/* 1. Neon Indicator Bar (Samping luar) */}
@@ -153,7 +167,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                       <Icon className="w-5 h-5 transition-transform duration-200" />
 
                       {/* 4. Label */}
-                      <span className={`relative z-10 font-semibold text-[14px] transition-colors duration-300 ${isActive ? 'text-white' : 'text-neutral-400 group-hover:text-white'
+                      <span className={`relative z-10 font-semibold text-[14px] transition-colors duration-300 ${isActive ? 'text-white' : 'text-neutral-600 group-hover:text-white'
                         }`}>
                         {item.label}
                       </span>
@@ -199,7 +213,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                           onClick={onClose}
                           className={`group relative flex items-center gap-3 p-3 rounded-xl transition-all duration-200 ${isActive
                             ? 'bg-gradient-to-b from-neutral-300/10 via-neutral-300/5 to-neutral-800/20 text-white shadow-lg shadow-black/10'
-                            : 'text-neutral-400 hover:text-white hover:bg-neutral-800/50'
+                            : 'text-neutral-600 hover:text-white hover:bg-neutral-800/50'
                             }`}
                         >
                           {/* 1. Neon Indicator Bar (Samping luar) */}
@@ -216,7 +230,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                           <Icon className="w-5 h-5 transition-transform duration-200" />
 
                           {/* 4. Label */}
-                          <span className={`relative z-10 font-semibold text-[14px] transition-colors duration-300 ${isActive ? 'text-white' : 'text-neutral-400 group-hover:text-white'
+                          <span className={`relative z-10 font-semibold text-[14px] transition-colors duration-300 ${isActive ? 'text-white' : 'text-neutral-600 group-hover:text-white'
                             }`}>
                             {item.label}
                           </span>
@@ -238,15 +252,17 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             {/* Settings Section */}
             <div className="px-4 py-4 border-t border-neutral-800/50">
               {(() => {
+                const roleUrl = getRoleUrl();
+                const settingsUrl = `/dashboard/${roleUrl}/settings`;
                 const isActive = pathname.includes('/settings');
 
                 return (
                   <Link
-                    href={`/dashboard/${role}/settings`}
+                    href={settingsUrl}
                     onClick={onClose}
                     className={`group relative flex items-center gap-3 p-3 rounded-xl transition-all duration-200 ${isActive
                         ? 'bg-gradient-to-b from-neutral-300/10 via-neutral-300/5 to-neutral-800/20 text-white shadow-lg shadow-black/10'
-                        : 'text-neutral-400 hover:text-white hover:bg-neutral-800/50'
+                        : 'text-neutral-600 hover:text-white hover:bg-neutral-800/50'
                       }`}
                   >
                     {/* 1. Neon Indicator Bar */}
@@ -264,7 +280,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
                     {/* 4. Label */}
                     <span
-                      className={`relative z-10 font-semibold text-[14px] transition-colors duration-300 ${isActive ? 'text-white' : 'text-neutral-400 group-hover:text-white'
+                      className={`relative z-10 font-semibold text-[14px] transition-colors duration-300 ${isActive ? 'text-white' : 'text-neutral-600 group-hover:text-white'
                         }`}
                     >
                       Pengaturan

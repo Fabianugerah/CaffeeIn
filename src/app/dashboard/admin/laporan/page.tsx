@@ -4,10 +4,11 @@ import { useEffect, useState, useRef } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
-import { 
-  FileText, 
-  TrendingUp, 
-  DollarSign, 
+import StatCard from '@/components/ui/StatCard';
+import {
+  FileText,
+  TrendingUp,
+  DollarSign,
   ShoppingCart,
   Calendar,
   Download,
@@ -28,13 +29,13 @@ import { supabase } from '@/lib/supabase';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 export default function AdminLaporanPage() {
-  const [loading, setLoading] = useState(true);
-  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
-  const [showEndDatePicker, setShowEndDatePicker] = useState(false);
-  const [currentStartMonth, setCurrentStartMonth] = useState(new Date());
-  const [currentEndMonth, setCurrentEndMonth] = useState(new Date());
-  const startDatePickerRef = useRef<HTMLDivElement>(null);
-  const endDatePickerRef = useRef<HTMLDivElement>(null);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [isFetching, setIsFetching] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [hoverDate, setHoverDate] = useState<Date | null>(null);
+
+  const datePickerRef = useRef<HTMLDivElement>(null);
 
   const [reportData, setReportData] = useState({
     overview: {
@@ -69,47 +70,87 @@ export default function AdminLaporanPage() {
   const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
   const daysOfWeek = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
 
-  useEffect(() => { fetchReportData(); }, [dateRange]);
+  // load pertama kali (PAKAI LOADING)
+  useEffect(() => {
+    fetchReportData(true);
+  }, []);
+
+  // ganti tanggal (TANPA LOADING)
+  useEffect(() => {
+    if (dateRange.startDate && dateRange.endDate) {
+      fetchReportData(false);
+    }
+  }, [dateRange]);
+
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (startDatePickerRef.current && !startDatePickerRef.current.contains(event.target as Node)) {
-        setShowStartDatePicker(false);
-      }
-      if (endDatePickerRef.current && !endDatePickerRef.current.contains(event.target as Node)) {
-        setShowEndDatePicker(false);
+    const handleClickOutside = (e: MouseEvent) => {
+      if (datePickerRef.current && !datePickerRef.current.contains(e.target as Node)) {
+        setShowDatePicker(false);
       }
     };
-    if (showStartDatePicker || showEndDatePicker) {
+
+    if (showDatePicker) {
       document.addEventListener('mousedown', handleClickOutside);
     }
+
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showStartDatePicker, showEndDatePicker]);
+  }, [showDatePicker]);
+
 
   const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear();
     const month = date.getMonth();
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
+
     const days = [];
     for (let i = 0; i < firstDay.getDay(); i++) days.push(null);
-    for (let day = 1; day <= lastDay.getDate(); day++) days.push(new Date(year, month, day));
+    for (let d = 1; d <= lastDay.getDate(); d++) {
+      days.push(new Date(year, month, d));
+    }
     return days;
   };
 
-  const handleDateClick = (date: Date, type: 'start' | 'end') => {
-    if (type === 'start') {
-      setDateRange({ ...dateRange, startDate: date });
-      setShowStartDatePicker(false);
-    } else {
+  const handleDateClick = (date: Date) => {
+    // klik pertama / reset
+    if (!dateRange.startDate || dateRange.endDate) {
+      setDateRange({ startDate: date, endDate: null });
+      setHoverDate(null);
+      return;
+    }
+
+    // klik kedua
+    if (date > dateRange.startDate) {
       setDateRange({ ...dateRange, endDate: date });
-      setShowEndDatePicker(false);
+      setShowDatePicker(false);
+    } else {
+      setDateRange({ startDate: date, endDate: null });
     }
   };
 
-  const fetchReportData = async () => {
+  const isInRange = (date: Date) => {
+    if (!dateRange.startDate) return false;
+
+    // hover preview
+    if (!dateRange.endDate && hoverDate) {
+      const start = dateRange.startDate < hoverDate ? dateRange.startDate : hoverDate;
+      const end = dateRange.startDate < hoverDate ? hoverDate : dateRange.startDate;
+      return date > start && date < end;
+    }
+
+    if (dateRange.endDate) {
+      return date > dateRange.startDate && date < dateRange.endDate;
+    }
+
+    return false;
+  };
+
+
+  const fetchReportData = async (showLoader = false) => {
     try {
-      setLoading(true);
+      showLoader ? setInitialLoading(true) : setIsFetching(true);
+
 
       const startDateStr = new Intl.DateTimeFormat('en-CA').format(dateRange.startDate);
       const endDateStr = new Intl.DateTimeFormat('en-CA').format(dateRange.endDate);
@@ -231,19 +272,21 @@ export default function AdminLaporanPage() {
     } catch (error) {
       console.error('Error:', error);
     } finally {
-      setLoading(false);
+      showLoader ? setInitialLoading(false) : setIsFetching(false);
     }
+
   };
 
   const COLORS = ['#f97316', '#3b82f6', '#8b5cf6', '#10b981'];
 
-  if (loading) return (
+  if (initialLoading) return (
     <DashboardLayout allowedRoles={['administrator']}>
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
       </div>
     </DashboardLayout>
   );
+
 
   return (
     <DashboardLayout allowedRoles={['administrator']}>
@@ -265,85 +308,113 @@ export default function AdminLaporanPage() {
 
         {/* Date Range Filter */}
         <Card>
-          <div className="flex flex-col md:flex-row items-center gap-4">
-            <div className="flex items-center gap-2 text-neutral-700 dark:text-neutral-300">
-              <Calendar className="w-5 h-5" />
-              <span className="font-medium">Periode:</span>
-            </div>
+          <div className="flex items-center gap-4">
+            <Calendar className="w-5 h-5" />
+            <span className="font-medium">Periode:</span>
 
-            <div className="relative" ref={startDatePickerRef}>
+            <div className="relative" ref={datePickerRef}>
               <button
-                onClick={() => setShowStartDatePicker(!showStartDatePicker)}
-                className="flex items-center gap-2 px-4 py-2 border border-neutral-300 dark:border-neutral-700 rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors bg-white dark:bg-neutral-800 min-w-[180px]"
+                onClick={() => setShowDatePicker(!showDatePicker)}
+                className="flex items-center gap-2 px-4 py-2 border rounded-lg bg-white dark:bg-neutral-800 min-w-[260px]"
               >
-                <span className="flex-1 text-left text-neutral-900 dark:text-white">
-                  {dateRange.startDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
-                </span>
+                {dateRange.startDate && dateRange.endDate
+                  ? `${dateRange.startDate.toLocaleDateString('id-ID')} - ${dateRange.endDate.toLocaleDateString('id-ID')}`
+                  : 'Pilih Periode'}
               </button>
-
-              {showStartDatePicker && (
-                <div className="absolute top-full mt-2 left-0 z-50 bg-white dark:bg-neutral-900/60 backdrop-blur-md rounded-xl shadow-2xl border border-neutral-200 dark:border-neutral-800 p-4 min-w-[320px]">
-                  <div className="flex items-center justify-between mb-4">
-                    <button onClick={() => setCurrentStartMonth(new Date(currentStartMonth.getFullYear(), currentStartMonth.getMonth() - 1))} className="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-lg">
-                      <ChevronLeft className="w-5 h-5 text-white" />
-                    </button>
-                    <span className="font-bold text-neutral-900 dark:text-white">{months[currentStartMonth.getMonth()]} {currentStartMonth.getFullYear()}</span>
-                    <button onClick={() => setCurrentStartMonth(new Date(currentStartMonth.getFullYear(), currentStartMonth.getMonth() + 1))} className="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-lg">
-                      <ChevronRight className="w-5 h-5 text-white" />
-                    </button>
-                  </div>
-                  <div className="grid grid-cols-7 gap-1 mb-2">
-                    {daysOfWeek.map(day => <div key={day} className="text-center text-xs font-medium text-neutral-500 dark:text-neutral-400 py-2">{day}</div>)}
-                  </div>
-                  <div className="grid grid-cols-7 gap-1">
-                    {getDaysInMonth(currentStartMonth).map((date, i) => {
-                      if (!date) return <div key={`e-${i}`} className="aspect-square" />;
-                      const isSelected = date.toDateString() === dateRange.startDate.toDateString();
-                      return (
-                        <button key={i} onClick={() => handleDateClick(date, 'start')} className={`aspect-square flex items-center justify-center rounded-lg text-sm font-medium transition-all ${isSelected ? 'bg-orange-500 text-white shadow-md' : 'hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300'}`}>
-                          {date.getDate()}
-                        </button>
-                      );
-                    })}
-                  </div>
+              {isFetching && (
+                <div className="text-sm text-neutral-500 animate-pulse">
+                  Memperbarui data laporan…
                 </div>
               )}
-            </div>
 
-            <span className="text-neutral-600 dark:text-neutral-400">sampai</span>
+              {showDatePicker && (
+                <div className="absolute z-50 mt-2 bg-white dark:bg-neutral-900 rounded-xl shadow-2xl border p-4">
+                  <div className="flex gap-6">
+                    {[0, 1].map(offset => {
+                      const monthDate = new Date(
+                        currentMonth.getFullYear(),
+                        currentMonth.getMonth() + offset
+                      );
 
-            <div className="relative" ref={endDatePickerRef}>
-              <button
-                onClick={() => setShowEndDatePicker(!showEndDatePicker)}
-                className="flex items-center gap-2 px-4 py-2 border border-neutral-300 dark:border-neutral-700 rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors bg-white dark:bg-neutral-800 min-w-[180px]"
-              >
-                <span className="flex-1 text-left text-neutral-900 dark:text-white">
-                  {dateRange.endDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
-                </span>
-              </button>
-
-              {showEndDatePicker && (
-                <div className="absolute top-full mt-2 left-0 z-50 bg-white dark:bg-neutral-900/60 backdrop-blur-md rounded-xl shadow-2xl border border-neutral-200 dark:border-neutral-800 p-4 min-w-[320px]">
-                  <div className="flex items-center justify-between mb-4">
-                    <button onClick={() => setCurrentEndMonth(new Date(currentEndMonth.getFullYear(), currentEndMonth.getMonth() - 1))} className="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-lg">
-                      <ChevronLeft className="w-5 h-5 text-white" />
-                    </button>
-                    <span className="font-bold text-neutral-900 dark:text-white">{months[currentEndMonth.getMonth()]} {currentEndMonth.getFullYear()}</span>
-                    <button onClick={() => setCurrentEndMonth(new Date(currentEndMonth.getFullYear(), currentEndMonth.getMonth() + 1))} className="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-lg">
-                      <ChevronRight className="w-5 h-5 text-white" />
-                    </button>
-                  </div>
-                  <div className="grid grid-cols-7 gap-1 mb-2">
-                    {daysOfWeek.map(day => <div key={day} className="text-center text-xs font-medium text-neutral-500 dark:text-neutral-400 py-2">{day}</div>)}
-                  </div>
-                  <div className="grid grid-cols-7 gap-1">
-                    {getDaysInMonth(currentEndMonth).map((date, i) => {
-                      if (!date) return <div key={`e-${i}`} className="aspect-square" />;
-                      const isSelected = date.toDateString() === dateRange.endDate.toDateString();
                       return (
-                        <button key={i} onClick={() => handleDateClick(date, 'end')} className={`aspect-square flex items-center justify-center rounded-lg text-sm font-medium transition-all ${isSelected ? 'bg-orange-500 text-white shadow-md' : 'hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300'}`}>
-                          {date.getDate()}
-                        </button>
+                        <div key={offset} className="w-[280px]">
+                          {/* Header */}
+                          <div className="flex items-center justify-between mb-3">
+                            {offset === 0 ? (
+                              <button
+                                onClick={() =>
+                                  setCurrentMonth(
+                                    new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1)
+                                  )
+                                }
+                              >
+                                <ChevronLeft />
+                              </button>
+                            ) : <div />}
+
+                            <span className="font-bold">
+                              {months[monthDate.getMonth()]} {monthDate.getFullYear()}
+                            </span>
+
+                            {offset === 1 ? (
+                              <button
+                                onClick={() =>
+                                  setCurrentMonth(
+                                    new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1)
+                                  )
+                                }
+                              >
+                                <ChevronRight />
+                              </button>
+                            ) : <div />}
+                          </div>
+
+                          {/* Days */}
+                          <div className="grid grid-cols-7 text-xs text-center mb-1">
+                            {daysOfWeek.map(d => (
+                              <div key={d}>{d}</div>
+                            ))}
+                          </div>
+
+                          {/* Dates */}
+                          <div className="grid grid-cols-7 gap-1">
+                            {getDaysInMonth(monthDate).map((date, i) => {
+                              if (!date) return <div key={i} />;
+
+                              const isStart =
+                                dateRange.startDate &&
+                                date.toDateString() === dateRange.startDate.toDateString();
+
+                              const isEnd =
+                                dateRange.endDate &&
+                                date.toDateString() === dateRange.endDate.toDateString();
+
+                              const inRange = isInRange(date);
+
+                              return (
+                                <button
+                                  key={i}
+                                  onClick={() => handleDateClick(date)}
+                                  onMouseEnter={() => {
+                                    if (dateRange.startDate && !dateRange.endDate) {
+                                      setHoverDate(date);
+                                    }
+                                  }}
+                                  onMouseLeave={() => setHoverDate(null)}
+                                  className={`
+                            h-9 text-sm flex items-center justify-center
+                            ${isStart ? 'bg-orange-500 text-white rounded-l-full' : ''}
+                            ${isEnd ? 'bg-orange-500 text-white rounded-r-full' : ''}
+                            ${inRange ? 'bg-orange-100 dark:bg-orange-900/30' : ''}
+                            ${!isStart && !isEnd && !inRange ? 'hover:bg-neutral-100 dark:hover:bg-neutral-700' : ''}
+                          `}
+                                >
+                                  {date.getDate()}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
                       );
                     })}
                   </div>
@@ -353,65 +424,36 @@ export default function AdminLaporanPage() {
           </div>
         </Card>
 
+
         {/* Overview Statistics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <p className="text-blue-100 text-sm mb-1">Total Pesanan</p>
-                <p className="text-3xl font-bold mb-2">{reportData.overview.totalOrders}</p>
-                <div className={`flex items-center gap-1 text-sm ${reportData.overview.orderGrowth >= 0 ? 'text-green-200' : 'text-red-200'}`}>
-                  {reportData.overview.orderGrowth >= 0 ? <ArrowUp className="w-4 h-4" /> : <ArrowDown className="w-4 h-4" />}
-                  <span>{Math.abs(reportData.overview.orderGrowth).toFixed(1)}%</span>
-                </div>
-              </div>
-              <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                <ShoppingCart className="w-6 h-6" />
-              </div>
-            </div>
-          </Card>
+          <StatCard
+            title="Total Pesanan"
+            value={reportData.overview.totalOrders.toLocaleString()}
+            growth={reportData.overview.orderGrowth}
+            icon={<ShoppingCart className="w-5 h-5" />}
+          />
 
-          <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <p className="text-green-100 text-sm mb-1">Total Pendapatan</p>
-                <p className="text-2xl font-bold mb-2">Rp {(reportData.overview.totalRevenue / 1000000).toFixed(1)}jt</p>
-                <div className={`flex items-center gap-1 text-sm ${reportData.overview.revenueGrowth >= 0 ? 'text-green-200' : 'text-red-200'}`}>
-                  {reportData.overview.revenueGrowth >= 0 ? <ArrowUp className="w-4 h-4" /> : <ArrowDown className="w-4 h-4" />}
-                  <span>{Math.abs(reportData.overview.revenueGrowth).toFixed(1)}%</span>
-                </div>
-              </div>
-              <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                <DollarSign className="w-6 h-6" />
-              </div>
-            </div>
-          </Card>
+          <StatCard
+            title="Total Pendapatan"
+            value={`Rp ${(reportData.overview.totalRevenue / 1_000_000).toFixed(1)} jt`}
+            growth={reportData.overview.revenueGrowth}
+            icon={<DollarSign className="w-5 h-5" />}
+          />
 
-          <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <p className="text-purple-100 text-sm mb-1">Total Transaksi</p>
-                <p className="text-3xl font-bold mb-2">{reportData.overview.totalTransaksi}</p>
-                <p className="text-sm text-purple-200">Transaksi selesai</p>
-              </div>
-              <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                <FileText className="w-6 h-6" />
-              </div>
-            </div>
-          </Card>
+          <StatCard
+            title="Total Transaksi"
+            value={reportData.overview.totalTransaksi.toLocaleString()}
+            growth={reportData.overview.orderGrowth}
+            icon={<FileText className="w-5 h-5" />}
+          />
 
-          <Card className="bg-gradient-to-br from-amber-500 to-amber-600 text-white">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <p className="text-amber-100 text-sm mb-1">Rata-rata Order</p>
-                <p className="text-2xl font-bold mb-2">Rp {(reportData.overview.avgOrderValue / 1000).toFixed(0)}k</p>
-                <p className="text-sm text-amber-200">Per transaksi</p>
-              </div>
-              <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                <TrendingUp className="w-6 h-6" />
-              </div>
-            </div>
-          </Card>
+          <StatCard
+            title="Rata-rata Order"
+            value={`Rp ${(reportData.overview.avgOrderValue / 1000).toFixed(0)}k`}
+            growth={reportData.overview.revenueGrowth}
+            icon={<TrendingUp className="w-5 h-5" />}
+          />
         </div>
 
         {/* Charts */}
@@ -424,7 +466,7 @@ export default function AdminLaporanPage() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.1} />
                 <XAxis dataKey="formattedDate" stroke="#9ca3af" style={{ fontSize: '12px' }} />
                 <YAxis stroke="#9ca3af" style={{ fontSize: '12px' }} tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`} />
-                <Tooltip 
+                <Tooltip
                   contentStyle={{ backgroundColor: '#1f2937', border: 'none', borderRadius: '8px', color: '#fff' }}
                   formatter={(value: any) => [`Rp ${value.toLocaleString('id-ID')}`, 'Revenue']}
                 />
@@ -441,7 +483,7 @@ export default function AdminLaporanPage() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.1} />
                 <XAxis dataKey="hour" stroke="#9ca3af" style={{ fontSize: '11px' }} />
                 <YAxis stroke="#9ca3af" style={{ fontSize: '12px' }} />
-                <Tooltip 
+                <Tooltip
                   contentStyle={{ backgroundColor: '#1f2937', border: 'none', borderRadius: '8px', color: '#fff' }}
                   formatter={(value: any) => [`${value} pesanan`, 'Total']}
                 />
