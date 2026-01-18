@@ -95,7 +95,6 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const projectItems = {
     administrator: [
       { href: '/dashboard/admin/laporan', icon: FileText, label: 'Laporan Restoran' },
-      { href: '/dashboard/admin/analytics', icon: BarChart3, label: 'Analytics' },
     ],
     waiter: [
       { href: '/dashboard/waiter/laporan', icon: FileText, label: 'Laporan Saya' },
