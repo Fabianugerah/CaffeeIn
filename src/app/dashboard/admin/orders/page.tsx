@@ -83,7 +83,7 @@ export default function AdminOrdersPage() {
     let filtered = [...orders];
     if (search) filtered = filtered.filter(o => o.id_order.toString().includes(search) || o.no_meja.toLowerCase().includes(search.toLowerCase()) || o.users?.nama_user?.toLowerCase().includes(search.toLowerCase()));
     if (statusFilter !== 'Semua') filtered = filtered.filter(o => o.status_order === statusFilter.toLowerCase());
-    
+
     // LOGIC FILTER TANGGAL DIPERBAIKI (Menggunakan Component)
     if (selectedDate) {
       const dateStr = new Intl.DateTimeFormat('en-CA', {
@@ -93,7 +93,7 @@ export default function AdminOrdersPage() {
       }).format(selectedDate);
       filtered = filtered.filter(o => o.tanggal === dateStr);
     }
-    
+
     setFilteredOrders(filtered);
   };
 
@@ -147,7 +147,7 @@ export default function AdminOrdersPage() {
   if (loading) return (
     <DashboardLayout allowedRoles={['administrator']}>
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+        <div className="animate-spin w-8 h-8 border-4 border-neutral-500 border-t-transparent rounded-full" />
       </div>
     </DashboardLayout>
   );
@@ -175,7 +175,7 @@ export default function AdminOrdersPage() {
             { label: 'Proses', value: stats.proses, color: 'text-blue-600' },
             { label: 'Selesai', value: stats.selesai, color: 'text-emerald-600' },
             { label: 'Dibatalkan', value: stats.dibatalkan, color: 'text-red-600' },
-            { label: 'Revenue', value: `Rp ${(stats.totalRevenue / 1000).toFixed(0)}k`, color: 'text-emerald-600' }
+            { label: 'Revenue', value: `Rp ${(stats.totalRevenue / 1_000_000).toFixed(1)}jt`, color: 'text-emerald-600' }
           ].map((stat, i) => (
             <Card key={i} className="text-center p-4">
               <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-1 font-medium">{stat.label}</p>
@@ -185,45 +185,44 @@ export default function AdminOrdersPage() {
         </div>
 
         {/* --- Filters Section --- */}
-        <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl shadow-sm p-4">
-          <div className="flex flex-col lg:flex-row gap-4">
+        <div className="flex flex-col lg:flex-row gap-4 pt-6">
 
-            {/* Search Input */}
-            <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
-              <input
-                type="text"
-                placeholder="Cari ID Order atau Nomor Meja..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-12 pr-4 py-2.5 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white border border-neutral-200 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-orange-500 transition-all"
+          {/* Search Input */}
+          <div className="relative flex-1">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
+            <input
+              type="text"
+              placeholder="Cari ID Order atau Nomor Meja..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-12 pr-4 py-2.5 bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-white border border-neutral-200 dark:border-neutral-800 rounded-lg focus:outline-none focus:ring-1 focus:ring-neutral-500 transition-all placeholder:text-neutral-400"
+            />
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-4">
+
+            {/* SINGLE DATE PICKER COMPONENT */}
+            <SingleDatePicker
+              date={selectedDate}
+              onChange={setSelectedDate}
+            />
+
+            {/* Status Dropdown */}
+            <div className="w-full sm:w-48">
+              <Select
+                options={STATUS_OPTIONS}
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="!bg-neutral-50 dark:!bg-neutral-950 !py-2.5"
               />
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-4">
-
-              {/* SINGLE DATE PICKER COMPONENT */}
-              <SingleDatePicker 
-                date={selectedDate}
-                onChange={setSelectedDate}
-              />
-
-              {/* Status Dropdown */}
-              <div className="w-full sm:w-48">
-                <Select
-                  options={STATUS_OPTIONS}
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="!bg-neutral-50 dark:!bg-neutral-800 !py-2.5"
-                />
-              </div>
             </div>
           </div>
         </div>
 
+
         {/* --- Table --- */}
         <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-md overflow-hidden border border-neutral-200 dark:border-neutral-800 flex flex-col">
-          <div className="overflow-x-auto min-h-[400px]">
+          <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-neutral-50 dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700">
                 <tr>
@@ -245,7 +244,7 @@ export default function AdminOrdersPage() {
                     <tr key={order.id_order} className="hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors">
                       <td className="px-6 py-4 text-sm font-medium text-neutral-900 dark:text-white">#{order.id_order}</td>
                       <td className="px-6 py-4 text-sm text-neutral-600 dark:text-neutral-400">{new Date(order.tanggal).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
-                      <td className="px-6 py-4 text-sm font-semibold text-neutral-900 dark:text-white">Meja {order.no_meja}</td>
+                      <td className="px-6 py-4 text-sm font-semibold text-neutral-900 dark:text-white">{order.no_meja}</td>
                       <td className="px-6 py-4 text-sm text-neutral-600 dark:text-neutral-400">{order.users?.nama_user || '-'}</td>
 
                       <td className="px-6 py-4 text-sm text-neutral-600 dark:text-neutral-400">{order.detail_order?.length || 0} item</td>
@@ -266,8 +265,8 @@ export default function AdminOrdersPage() {
                               setOpenMenuId(openMenuId === order.id_order ? null : order.id_order);
                             }}
                             className={`p-2 rounded-lg transition-colors ${openMenuId === order.id_order
-                                ? 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white'
-                                : 'text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-700 dark:hover:text-neutral-300'
+                              ? 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white'
+                              : 'text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-700 dark:hover:text-neutral-300'
                               }`}
                           >
                             <MoreVertical className="w-5 h-5" />
@@ -340,8 +339,8 @@ export default function AdminOrdersPage() {
                           <button
                             onClick={() => paginate(number)}
                             className={`h-8 w-8 flex items-center justify-center rounded-lg text-sm font-medium transition-colors ${currentPage === number
-                                ? 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900'
-                                : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800'
+                              ? 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900'
+                              : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800'
                               }`}
                           >
                             {number}

@@ -5,15 +5,15 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
-import { 
-  User, 
-  Lock, 
-  Bell, 
-  Palette, 
+import {
+  User,
+  Lock,
+  Bell,
+  Palette,
   Save,
   Eye,
   EyeOff,
-  CheckCircle2,
+  Check,
   AlertCircle,
   Moon,
   Sun
@@ -236,7 +236,7 @@ export default function SettingsPage() {
         {/* Alert Messages */}
         {success && (
           <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 flex items-start gap-3">
-            <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
+            <Check className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
             <p className="text-sm text-green-800 dark:text-green-300">{success}</p>
           </div>
         )}
@@ -251,7 +251,7 @@ export default function SettingsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Sidebar Tabs */}
           <div className="lg:col-span-1">
-            <Card className="p-2 border border-neutral-800">
+            <Card className="p-2 border border-neutral-200 dark:border-neutral-800">
               <nav className="space-y-1">
                 {tabs.map((tab) => {
                   const Icon = tab.icon;
@@ -259,11 +259,10 @@ export default function SettingsPage() {
                     <button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id)}
-                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all ${
-                        activeTab === tab.id
-                          ? 'bg-neutral-800 text-white shadow-md'
-                          : 'text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800'
-                      }`}
+                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all ${activeTab === tab.id
+                        ? 'bg-black dark:bg-white text-white dark:text-black shadow-md'
+                        : 'text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800'
+                        }`}
                     >
                       <Icon className="w-5 h-5" />
                       <span className="font-medium">{tab.label}</span>
@@ -278,12 +277,12 @@ export default function SettingsPage() {
           <div className="lg:col-span-3">
             {/* Profile Tab */}
             {activeTab === 'profile' && (
-              <Card title="Informasi Profil" className="border border-neutral-800">
+              <Card title="Informasi Profil" className="border border-neutral-200 dark:border-neutral-800">
                 <div className="space-y-6">
                   {/* User Info Display */}
-                  <div className="flex items-center gap-4 p-4 bg-neutral-50 dark:bg-neutral-800 rounded-lg">
-                    <div className="w-16 h-16 bg-neutral-600 rounded-full flex items-center justify-center">
-                      <User className="w-8 h-8 text-white" />
+                  <div className="flex items-center gap-4 p-4 bg-neutral-100 dark:bg-neutral-800 rounded-lg">
+                    <div className="w-16 h-16 bg-neutral-200 dark:bg-neutral-700 rounded-full flex items-center justify-center border border-neutral-300 dark:border-neutral-600">
+                      <User className="w-8 h-8 text-neutral-600 dark:text-neutral-300" />
                     </div>
                     <div>
                       <h3 className="font-bold text-neutral-900 dark:text-white">{user?.nama_user}</h3>
@@ -330,11 +329,11 @@ export default function SettingsPage() {
 
             {/* Security Tab */}
             {activeTab === 'security' && (
-              <Card title="Keamanan Akun" className="border border-neutral-800">
+              <Card title="Keamanan Akun" className="border border-neutral-200 dark:border-neutral-800">
                 <div className="space-y-6">
-                  <div className="p-4 bg-blue-50 dark:bg-red-900/20 border border-blue-200 dark:border-red-800 rounded-lg">
-                    <p className="text-sm text-red-800 dark:text-red-300">
-                      🔒 Pastikan password Anda kuat dan unik. Jangan gunakan password yang sama dengan akun lain.
+                  <div className="p-4 bg-red-200/50 dark:bg-red-900/20 border border-red-800 dark:border-red-800 rounded-lg">
+                    <p className=" flex gap-2 text-sm text-red-800 dark:text-red-300 items-center">
+                      <Lock className="w-4 h-4"/> <span>Pastikan password Anda kuat dan unik. Jangan gunakan password yang sama dengan akun lain.</span>
                     </p>
                   </div>
 
@@ -436,36 +435,38 @@ export default function SettingsPage() {
                       {/* Light Mode Card */}
                       <button
                         onClick={() => handleThemeChange('light')}
-                        className={`p-6 border-2 rounded-xl transition-all relative ${
-                          activeTheme === 'light'
-                            ? 'border-orange-500 bg-orange-50/30 dark:bg-orange-900/10'
-                            : 'border-neutral-200 dark:border-neutral-800 hover:border-neutral-300'
-                        }`}
+                        className={`p-6 border rounded-xl transition-all relative ${activeTheme === 'light'
+                          ? 'bg-black dark:bg-white'
+                          : 'border-neutral-200 dark:border-neutral-800 hover:border-neutral-300 dark:hover:border-neutral-700'
+                          }`}
                       >
                         <div className="flex flex-col items-center gap-3">
-                          <div className={`w-16 h-16 rounded-lg shadow-sm flex items-center justify-center ${activeTheme === 'light' ? 'bg-white text-orange-500' : 'bg-neutral-100 text-neutral-400'}`}>
+                          <div className={`w-16 h-16 rounded-lg shadow-sm flex items-center justify-center ${activeTheme === 'light' ? 'text-yellow-500' : 'text-neutral-600'}`}>
                             <Sun className="w-8 h-8" />
                           </div>
-                          <p className={`font-semibold ${activeTheme === 'light' ? 'text-orange-600' : 'text-neutral-500'}`}>Light Mode</p>
-                          {activeTheme === 'light' && <CheckCircle2 className="absolute top-2 right-2 w-5 h-5 text-orange-500" />}
+                          <p className={`font-semibold ${activeTheme === 'light' ? 'text-white' : 'text-neutral-500'}`}>Light Mode</p>
+                          {activeTheme === 'light' && <div className="absolute top-2 right-2 bg-white dark:bg-black rounded-full p-1">
+                            <Check className="w-3 h-3 text-black dark:text-white" />
+                          </div>}
                         </div>
                       </button>
 
                       {/* Dark Mode Card */}
                       <button
                         onClick={() => handleThemeChange('dark')}
-                        className={`p-6 border-2 rounded-xl transition-all relative ${
-                          activeTheme === 'dark'
-                            ? 'border-orange-500 bg-orange-50/30 dark:bg-orange-900/10'
-                            : 'border-neutral-200 dark:border-neutral-800 hover:border-neutral-300'
-                        }`}
+                        className={`p-6 border rounded-xl transition-all relative ${activeTheme === 'dark'
+                          ? 'border-white bg-black dark:bg-white'
+                          : 'border-neutral-200 dark:border-neutral-800 hover:border-neutral-300'
+                          }`}
                       >
                         <div className="flex flex-col items-center gap-3">
-                          <div className={`w-16 h-16 rounded-lg shadow-sm flex items-center justify-center ${activeTheme === 'dark' ? 'bg-neutral-900 text-blue-400' : 'bg-neutral-100 text-neutral-400'}`}>
+                          <div className={`w-16 h-16 rounded-lg flex items-center justify-center ${activeTheme === 'dark' ? 'text-blue-400' : 'text-neutral-400'}`}>
                             <Moon className="w-8 h-8" />
                           </div>
-                          <p className={`font-semibold ${activeTheme === 'dark' ? 'text-orange-600' : 'text-neutral-500'}`}>Dark Mode</p>
-                          {activeTheme === 'dark' && <CheckCircle2 className="absolute top-2 right-2 w-5 h-5 text-orange-500" />}
+                          <p className={`font-semibold ${activeTheme === 'dark' ? 'text-black' : 'text-neutral-500'}`}>Dark Mode</p>
+                          {activeTheme === 'dark' && <div className="absolute top-2 right-2 bg-white dark:bg-black rounded-full p-1">
+                            <Check className="w-3 h-3 text-black dark:text-white" />
+                          </div>}
                         </div>
                       </button>
                     </div>
@@ -482,7 +483,7 @@ export default function SettingsPage() {
 
             {/* Notifications Tab */}
             {activeTab === 'notifications' && (
-              <Card title="Preferensi Notifikasi" className="border border-neutral-800">
+              <Card title="Preferensi Notifikasi" className="border border-neutral-200 dark:border-neutral-800">
                 <div className="space-y-6">
                   <div className="space-y-4">
                     {[
@@ -509,7 +510,7 @@ export default function SettingsPage() {
                     ].map((item) => (
                       <div
                         key={item.key}
-                        className="flex items-center justify-between p-4 bg-neutral-50 dark:bg-neutral-800 rounded-lg"
+                        className="flex items-center justify-between p-4 bg-neutral-100 dark:bg-neutral-800 rounded-lg"
                       >
                         <div className="flex-1">
                           <h4 className="font-semibold text-neutral-900 dark:text-white">
@@ -531,7 +532,7 @@ export default function SettingsPage() {
                             }
                             className="sr-only peer"
                           />
-                          <div className="w-11 h-6 bg-neutral-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-neutral-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-neutral-600 peer-checked:bg-blue-600"></div>
+                          <div className="w-11 h-6 bg-neutral-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-neutral-100 dark:peer-focus:ring-neutral-800 rounded-full peer dark:bg-neutral-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-neutral-600 peer-checked:bg-neutral-800 dark:peer-checked:bg-neutral-500"></div>
                         </label>
                       </div>
                     ))}

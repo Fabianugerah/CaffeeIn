@@ -32,7 +32,7 @@ export default function AdminTransaksiPage() {
 
   // --- PAGINATION STATE ---
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10); 
+  const [itemsPerPage] = useState(10);
 
   // Modal State
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -114,7 +114,7 @@ export default function AdminTransaksiPage() {
     if (metodeBayar !== 'Semua') {
       filtered = filtered.filter(t => t.metode_pembayaran === metodeBayar.toLowerCase());
     }
-    
+
     // Logic Filter Date (Menggunakan Date Object dari Component)
     if (selectedDate) {
       const dateStr = new Intl.DateTimeFormat('en-CA', {
@@ -124,7 +124,7 @@ export default function AdminTransaksiPage() {
       }).format(selectedDate);
       filtered = filtered.filter(t => t.tanggal === dateStr);
     }
-    
+
     setFilteredTransaksi(filtered);
   };
 
@@ -182,7 +182,7 @@ export default function AdminTransaksiPage() {
   if (loading) return (
     <DashboardLayout allowedRoles={['administrator']}>
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+        <div className="animate-spin w-8 h-8 border-4 border-neutral-500 border-t-transparent rounded-full" />
       </div>
     </DashboardLayout>
   );
@@ -208,12 +208,11 @@ export default function AdminTransaksiPage() {
             { label: 'Total', value: stats.total, color: 'text-neutral-800 dark:text-white' },
             { label: 'Revenue', value: `Rp ${(stats.totalPendapatan / 1000000).toFixed(1)}jt`, color: 'text-green-600' },
             { label: 'Hari Ini', value: stats.hariIni, color: 'text-blue-600' },
-            { label: 'Tunai', value: stats.tunai, color: 'text-green-600', icon: Banknote },
-            { label: 'Debit', value: stats.debit, color: 'text-blue-600', icon: CreditCard },
-            { label: 'QRIS', value: stats.qris, color: 'text-purple-600', icon: Smartphone }
+            { label: 'Tunai', value: stats.tunai, color: 'text-green-600' },
+            { label: 'Debit', value: stats.debit, color: 'text-blue-600' },
+            { label: 'QRIS', value: stats.qris, color: 'text-purple-600' }
           ].map((stat, i) => (
             <Card key={i} className="text-center p-4">
-              {stat.icon && <stat.icon className={`w-6 h-6 ${stat.color} mx-auto mb-2 opacity-80`} />}
               <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-1 font-medium">{stat.label}</p>
               <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
             </Card>
@@ -221,47 +220,43 @@ export default function AdminTransaksiPage() {
         </div>
 
         {/* --- Filters Section --- */}
-        <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl shadow-sm p-4">
-          <div className="flex flex-col lg:flex-row gap-4">
+        <div className="flex flex-col lg:flex-row gap-4 pt-6">
 
-            {/* Search Input */}
-            <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
-              <input
-                type="text"
-                placeholder="Cari ID, Meja, atau Nama Pelanggan..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-12 pr-4 py-2.5 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white border border-neutral-200 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-orange-500 transition-all"
-              />
-            </div>
+          {/* Search Input */}
+          <div className="relative flex-1">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
+            <input
+              type="text"
+              placeholder="Cari ID Order atau Nomor Meja..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-12 pr-4 py-2.5 bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-white border border-neutral-200 dark:border-neutral-800 rounded-lg focus:outline-none focus:ring-1 focus:ring-neutral-500 transition-all placeholder:text-neutral-400"
+            />
+          </div>
 
-            <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex flex-col sm:flex-row gap-4">
 
-              {/* Single Date Picker Component */}
-              <div className="w-full sm:w-auto">
-                <SingleDatePicker 
-                    date={selectedDate}
-                    onChange={setSelectedDate}
-                />
-              </div>
+            {/* SINGLE DATE PICKER COMPONENT */}
+            <SingleDatePicker
+              date={selectedDate}
+              onChange={setSelectedDate}
+            />
 
-              {/* Metode Pembayaran Dropdown */}
-              <div className="w-full sm:w-48">
-                <Select
-                  options={PAYMENT_OPTIONS}
+            {/* Status Dropdown */}
+            <div className="w-full sm:w-48">
+              <Select
+                options={PAYMENT_OPTIONS}
                   value={metodeBayar}
                   onChange={(e) => setMetodeBayar(e.target.value)}
-                  className="!bg-neutral-50 dark:!bg-neutral-800 !py-2.5"
-                />
-              </div>
+                className="!bg-neutral-50 dark:!bg-neutral-950 !py-2.5"
+              />
             </div>
           </div>
         </div>
 
         {/* --- Table --- */}
         <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-md overflow-hidden border border-neutral-200 dark:border-neutral-800 flex flex-col">
-          <div className="overflow-x-auto min-h-[400px]">
+          <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-neutral-50 dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700">
                 <tr>
@@ -295,7 +290,7 @@ export default function AdminTransaksiPage() {
                         {t.order?.nama_pelanggan || 'Customer'}
                       </td>
                       <td className="px-6 py-4 text-sm font-semibold text-neutral-900 dark:text-white">
-                        Meja {t.order?.no_meja || '-'}
+                        {t.order?.no_meja || '-'}
                       </td>
 
                       {/* --- KOLOM ROLE --- */}
@@ -309,7 +304,7 @@ export default function AdminTransaksiPage() {
                           <span className="uppercase tracking-wide">{t.metode_pembayaran}</span>
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm font-bold text-green-600 tabular-nums">
+                      <td className="px-6 py-4 text-sm font-bold text-black dark:text-white tabular-nums">
                         Rp {parseFloat(t.total_bayar).toLocaleString('id-ID')}
                       </td>
 
@@ -322,8 +317,8 @@ export default function AdminTransaksiPage() {
                               setOpenMenuId(openMenuId === t.id_transaksi ? null : t.id_transaksi);
                             }}
                             className={`p-2 rounded-lg transition-colors ${openMenuId === t.id_transaksi
-                                ? 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white'
-                                : 'text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-700 dark:hover:text-neutral-300'
+                              ? 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white'
+                              : 'text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-700 dark:hover:text-neutral-300'
                               }`}
                           >
                             <MoreVertical className="w-5 h-5" />
@@ -395,8 +390,8 @@ export default function AdminTransaksiPage() {
                           <button
                             onClick={() => paginate(number)}
                             className={`h-8 w-8 flex items-center justify-center rounded-lg text-sm font-medium transition-colors ${currentPage === number
-                                ? 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900'
-                                : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800'
+                              ? 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900'
+                              : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800'
                               }`}
                           >
                             {number}

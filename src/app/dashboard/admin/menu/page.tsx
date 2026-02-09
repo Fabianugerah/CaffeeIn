@@ -279,7 +279,7 @@ export default function MenuManagementPage() {
     return (
       <DashboardLayout allowedRoles={['administrator']}>
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
+          <div className="animate-spin w-8 h-8 border-4 border-neutral-500 border-t-transparent rounded-full"></div>
         </div>
       </DashboardLayout>
     );
@@ -308,28 +308,27 @@ export default function MenuManagementPage() {
         </div>
 
         {/* --- Search & Filter --- */}
-        <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl shadow-sm p-4">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
-              <input
-                type="text"
-                placeholder="Cari nama menu..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-2.5 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white border border-neutral-200 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-neutral-500 transition-all"
-              />
-            </div>
-            <div className="w-full md:w-64">
-              <Select
-                options={MENU_CATEGORIES}
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="!bg-neutral-50 dark:!bg-neutral-800 !py-2.5"
-              />
-            </div>
+        <div className="flex flex-col md:flex-row gap-4 pt-6">
+          <div className="relative flex-1">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
+            <input
+              type="text"
+              placeholder="Cari nama menu..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-12 pr-4 py-2.5 bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-white border border-neutral-200 dark:border-neutral-800 rounded-lg focus:outline-none focus:ring-1 focus:ring-neutral-500 transition-all placeholder:text-neutral-400"
+            />
+          </div>
+          <div className="w-full md:w-64">
+            <Select
+              options={MENU_CATEGORIES}
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="!bg-neutral-50 dark:!bg-neutral-950 !py-2.5"
+            />
           </div>
         </div>
+
 
         {/* --- Table --- */}
         <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-md overflow-hidden border border-neutral-200 dark:border-neutral-800 flex flex-col">
@@ -392,8 +391,8 @@ export default function MenuManagementPage() {
                       <td className="px-6 py-4">
                         <span
                           className={`px-2.5 py-1 text-xs font-medium rounded-full border ${menu.status_masakan === 'tersedia'
-                              ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800'
-                              : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800'
+                            ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800'
+                            : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800'
                             }`}
                         >
                           {menu.status_masakan === 'tersedia' ? 'Tersedia' : 'Habis'}
@@ -410,8 +409,8 @@ export default function MenuManagementPage() {
                               setOpenMenuId(openMenuId === menu.id_masakan ? null : menu.id_masakan);
                             }}
                             className={`p-2 rounded-lg transition-colors ${openMenuId === menu.id_masakan
-                                ? 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white'
-                                : 'text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-700 dark:hover:text-neutral-300'
+                              ? 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white'
+                              : 'text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-700 dark:hover:text-neutral-300'
                               }`}
                           >
                             <MoreVertical className="w-5 h-5" />
@@ -485,8 +484,8 @@ export default function MenuManagementPage() {
                           <button
                             onClick={() => paginate(number)}
                             className={`h-10 w-10 flex items-center justify-center rounded-lg text-sm font-medium transition-colors ${currentPage === number
-                                ? 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900'
-                                : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800'
+                              ? 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900'
+                              : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800'
                               }`}
                           >
                             {number}

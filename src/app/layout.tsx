@@ -18,6 +18,28 @@ export const metadata: Metadata = {
   icons: {
     icon: "/images/caffeein.svg", 
   },
+  openGraph: {
+    title: "CaffeeIn - Authentic and Modern Coffee Shop",
+    description: "Modern Coffee Shop Management System",
+    url: "https://caffeein.vercel.app",
+    siteName: "CaffeeIn",
+    images: [
+      {
+        url: "/images/caffeein.png",
+        width: 1200,
+        height: 630,
+        alt: "CaffeeIn Logo",
+      }
+    ],
+    locale: "id_ID",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "CaffeeIn - Authentic and Modern Coffee Shop",
+    description: "Modern Coffee Shop Management System",
+    images: ["/images/caffeein.svg"],
+  },
 };
 
 export default function RootLayout({
@@ -28,7 +50,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/* Skrip pencegah 'Flash' warna (Dark/Light Mode) */}
+        {/* Skrip pencegahan 'Flash' warna (Dark/Light Mode) */}
         <script
           dangerouslySetInnerHTML={{
             __html: `

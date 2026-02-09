@@ -28,7 +28,6 @@ export default function AdminDashboard() {
     totalTransaksi: 0,
     pendapatanHariIni: 0,
     orderPending: 0,
-    // Growth stats (akan dihitung dinamis)
     usersGrowth: 0,
     ordersGrowth: 0,
     revenueGrowth: 0,
@@ -48,9 +47,8 @@ export default function AdminDashboard() {
     fetchRecentOrders();
   }, []);
 
-  // Helper untuk menghitung persentase pertumbuhan
   const calculateGrowth = (current: number, previous: number) => {
-    if (previous === 0) return current > 0 ? 100 : 0; // Jika kemarin 0, hari ini ada, anggap 100%
+    if (previous === 0) return current > 0 ? 100 : 0;
     return ((current - previous) / previous) * 100;
   };
 
@@ -65,7 +63,7 @@ export default function AdminDashboard() {
         { data: transaksi },
         { data: detailOrders }
       ] = await Promise.all([
-        supabase.from('users').select('created_at'), // Hanya butuh created_at untuk growth user
+        supabase.from('users').select('created_at'),
         supabase.from('masakan').select('id_masakan'),
         supabase.from('order').select('created_at, status_order'),
         supabase.from('transaksi').select('tanggal, total_bayar'),
@@ -195,7 +193,7 @@ export default function AdminDashboard() {
     return (
       <DashboardLayout allowedRoles={['administrator']}>
         <div className="flex items-center justify-center h-[80vh]">
-          <div className="animate-spin w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full"></div>
+          <div className="animate-spin w-10 h-10 border-4 border-neutral-500 border-t-transparent rounded-full"></div>
         </div>
       </DashboardLayout>
     );
@@ -204,19 +202,19 @@ export default function AdminDashboard() {
   const statCards = [
     {
       title: 'Pendapatan Hari Ini',
-      value: `Rp ${(stats.pendapatanHariIni / 1000).toLocaleString('id-ID')}k`,
-      subtitle: 'vs kemarin', // Label perbandingan
+      value: `Rp ${(stats.pendapatanHariIni).toLocaleString('id-ID')}`,
+      subtitle: 'vs kemarin',
       icon: DollarSign,
-      iconBg: 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400',
+      iconBg: 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400',
       growth: stats.revenueGrowth,
       isPositive: stats.revenueGrowth >= 0,
     },
     {
       title: 'Total Pesanan',
-      value: stats.totalOrders, // Menampilkan total semua, tapi growthnya berdasarkan "Hari ini vs Kemarin"
+      value: stats.totalOrders,
       subtitle: 'Tren harian',
       icon: ShoppingCart,
-      iconBg: 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400',
+      iconBg: 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400',
       growth: stats.ordersGrowth,
       isPositive: stats.ordersGrowth >= 0,
     },
@@ -225,27 +223,27 @@ export default function AdminDashboard() {
       value: stats.orderPending,
       subtitle: 'Perlu Diproses',
       icon: Clock,
-      iconBg: 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400',
-      growth: 0, // Pending biasanya tidak butuh growth percentage, atau bisa dibuat statis
+      iconBg: 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400',
+      growth: 0,
       isPositive: true,
-      hideGrowth: true // Custom flag buat hide persentase kalau mau
+      hideGrowth: true
     },
     {
       title: 'Total User',
       value: stats.totalUsers,
-      subtitle: 'Pengguna baru harian',
+      subtitle: 'Total User Terdaftar',
       icon: Users,
-      iconBg: 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400',
-      growth: stats.usersGrowth,
-      isPositive: stats.usersGrowth >= 0,
+      iconBg: 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400',
+      isPositive: true,
+      hideGrowth: true
     },
     {
       title: 'Total Menu',
       value: stats.totalMenu,
       subtitle: 'Item Tersedia',
       icon: UtensilsCrossed,
-      iconBg: 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400',
-      growth: 0, // Menu jarang berubah harian
+      iconBg: 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400',
+      growth: 0,
       isPositive: true,
       hideGrowth: true
     },
@@ -254,7 +252,7 @@ export default function AdminDashboard() {
       value: stats.totalTransaksi,
       subtitle: 'Tren harian',
       icon: Receipt,
-      iconBg: 'bg-teal-100 text-teal-600 dark:bg-teal-900/30 dark:text-teal-400',
+      iconBg: 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400',
       growth: stats.transaksiGrowth,
       isPositive: stats.transaksiGrowth >= 0,
     },
@@ -403,7 +401,7 @@ export default function AdminDashboard() {
                   />
                   <Bar 
                     dataKey="orders" 
-                    fill="#F97316" 
+                    fill="#3B82F6" 
                     radius={[0, 4, 4, 0]} 
                     barSize={15}
                   />
@@ -414,12 +412,12 @@ export default function AdminDashboard() {
         </div>
 
         <Card className="border border-neutral-200 dark:border-neutral-800 p-0 overflow-hidden">
-          <div className="p-6 border-b border-neutral-100 dark:border-neutral-800 flex justify-between items-center bg-neutral-50/50 dark:bg-neutral-900/50">
+          <div className="py-6 border-b border-neutral-100 dark:border-neutral-800 flex justify-between items-center bg-neutral-50/50 dark:bg-neutral-900/50">
             <div>
-              <h3 className="text-lg font-bold text-neutral-800 dark:text-white">Pesanan Terbaru</h3>
+              <h3 className="text-xl font-bold text-neutral-800 dark:text-white">Pesanan Terbaru</h3>
               <p className="text-sm text-neutral-500">Monitor transaksi yang baru masuk</p>
             </div>
-            <a href="/dashboard/admin/orders" className="text-sm font-semibold text-orange-600 hover:text-orange-700">
+            <a href="/dashboard/admin/orders" className="text-sm font-semibold text-neutral-600 dark:text-neutral-400 hover:text-neutral-700">
               Lihat Semua
             </a>
           </div>

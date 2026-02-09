@@ -91,7 +91,7 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
 
           <div className="relative w-28 h-12">
             <Image
-              src="/images/caffeein.svg"
+              src={isDarkMode ? "/images/caffeein.svg" : "/images/caffeein_black.svg"}
               alt="CaffeeIn Logo"
               fill
               className="object-contain object-left dark:brightness-110"
@@ -141,8 +141,8 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
               <div className="absolute right-0 mt-4 w-64 bg-white dark:bg-neutral-900/60 backdrop-blur-md rounded-xl shadow-lg border border-neutral-200 dark:border-neutral-800 py-2 z-50">
                 {/* User Info */}
                 <div className="flex gap-3 px-4 py-3 border-b border-neutral-100 dark:border-neutral-800">
-                  <div className="w-9 h-9 bg-neutral-600 rounded-full flex items-center justify-center">
-                    <User className="w-5 h-5 text-white" />
+                  <div className="w-9 h-9 bg-neutral-200 dark:bg-neutral-700 rounded-full flex items-center justify-center border border-neutral-300 dark:border-neutral-600">
+                    <User className="w-5 h-5 text-neutral-600 dark:text-neutral-300" />
                   </div>
                   <div className="hidden md:block text-left">
                     <p className="text-sm font-semibold text-neutral-900 dark:text-white">

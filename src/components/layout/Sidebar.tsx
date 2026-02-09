@@ -226,7 +226,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           </div>
 
           {/* Logout */}
-          <div className="p-4 border-t border-neutral-100 dark:border-neutral-800/50 bg-neutral-50 dark:bg-neutral-900/50 backdrop-blur-sm">
+          <div className="p-4 border-t border-neutral-100 dark:border-neutral-800/50">
             <button
               onClick={handleLogout}
               className="flex items-center gap-3 w-full px-4 py-2.5 rounded-xl

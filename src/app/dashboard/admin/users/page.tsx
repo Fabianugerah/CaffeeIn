@@ -3,10 +3,10 @@
 import { useEffect, useState } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input'; // Menggunakan komponen Input custom
-import Select from '@/components/ui/Select'; // Menggunakan komponen Select custom
+import Input from '@/components/ui/Input';
+import Select from '@/components/ui/Select';
 import Modal from '@/components/ui/Modal';
-import SuccessModal from '@/components/ui/SuccessModal'; // Pastikan path sesuai
+import SuccessModal from '@/components/ui/SuccessModal';
 import { Users, Plus, Edit, Trash2, Search, MoreVertical, Shield } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
@@ -14,11 +14,11 @@ export default function AdminUsersPage() {
   const [users, setUsers] = useState<any[]>([]);
   const [levels, setLevels] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  
+
   // Modal & Edit State
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState<any>(null);
-  
+
   // Search State
   const [search, setSearch] = useState('');
 
@@ -134,7 +134,7 @@ export default function AdminUsersPage() {
     try {
       const { error } = await supabase.from('users').delete().eq('id_user', id);
       if (error) throw error;
-      
+
       fetchData();
       setSuccessMessage('User berhasil dihapus dari sistem.');
       setIsSuccessModalOpen(true);
@@ -168,7 +168,7 @@ export default function AdminUsersPage() {
     return (
       <DashboardLayout allowedRoles={['administrator']}>
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
+          <div className="animate-spin w-8 h-8 border-4 border-neutral-500 border-t-transparent rounded-full"></div>
         </div>
       </DashboardLayout>
     );
@@ -177,7 +177,7 @@ export default function AdminUsersPage() {
   return (
     <DashboardLayout allowedRoles={['administrator']}>
       <div className="space-y-6">
-        
+
         {/* --- Header --- */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
@@ -198,7 +198,7 @@ export default function AdminUsersPage() {
         </div>
 
         {/* --- Search Bar --- */}
-        <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl shadow-sm p-4">
+        <div className="pt-6">
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
             <input
@@ -206,14 +206,14 @@ export default function AdminUsersPage() {
               placeholder="Cari berdasarkan nama atau username..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-12 pr-4 py-2.5 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white border border-neutral-200 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-orange-500 transition-all"
+              className="w-full pl-12 pr-4 py-2.5 bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-white border border-neutral-200 dark:border-neutral-800 rounded-lg focus:outline-none focus:ring-1 focus:ring-neutral-500 transition-all placeholder:text-neutral-400"
             />
           </div>
         </div>
 
         {/* --- Table --- */}
         <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-md overflow-hidden border border-neutral-200 dark:border-neutral-800">
-          <div className="overflow-x-auto min-h-[400px]">
+          <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-neutral-50 dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700">
                 <tr>
@@ -256,7 +256,7 @@ export default function AdminUsersPage() {
                           {user.level?.nama_level}
                         </span>
                       </td>
-                      
+
                       {/* --- Action Menu (Kebab) --- */}
                       <td className="px-6 py-4 text-center relative">
                         <div className="relative inline-block action-menu-trigger">
@@ -265,11 +265,10 @@ export default function AdminUsersPage() {
                               e.stopPropagation();
                               setOpenMenuId(openMenuId === user.id_user ? null : user.id_user);
                             }}
-                            className={`p-2 rounded-lg transition-colors ${
-                                openMenuId === user.id_user 
-                                ? 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white' 
-                                : 'text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-700 dark:hover:text-neutral-300'
-                            }`}
+                            className={`p-2 rounded-lg transition-colors ${openMenuId === user.id_user
+                              ? 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white'
+                              : 'text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-700 dark:hover:text-neutral-300'
+                              }`}
                           >
                             <MoreVertical className="w-5 h-5" />
                           </button>
@@ -284,7 +283,7 @@ export default function AdminUsersPage() {
                                 }}
                                 className="w-full text-left px-4 py-3 text-sm hover:bg-neutral-50 dark:hover:bg-neutral-800 flex items-center gap-2 text-neutral-700 dark:text-neutral-300 transition-colors"
                               >
-                                <Edit className="w-4 h-4" /> 
+                                <Edit className="w-4 h-4" />
                                 Edit
                               </button>
                               <div className="h-px bg-neutral-100 dark:bg-neutral-800 mx-2"></div>
@@ -296,7 +295,7 @@ export default function AdminUsersPage() {
                                 }}
                                 className="w-full text-left px-4 py-3 text-sm hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2 text-red-600 transition-colors"
                               >
-                                <Trash2 className="w-4 h-4" /> 
+                                <Trash2 className="w-4 h-4" />
                                 Hapus
                               </button>
                             </div>
