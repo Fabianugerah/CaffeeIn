@@ -40,8 +40,8 @@ export default function TransactionPage({ role }: TransactionPageProps) {
   // Action Menu State
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
 
-  useEffect(() => { 
-    fetchTransaksi(); 
+  useEffect(() => {
+    fetchTransaksi();
   }, []);
 
   // Reset ke halaman 1 saat filter berubah
@@ -134,7 +134,7 @@ export default function TransactionPage({ role }: TransactionPageProps) {
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
 
   const handlePrintReceipt = (transaksiId: number) => {
-    window.open(`/guest/receipt?transaksi=${transaksiId}`, '_blank');
+    window.open(`/customer/receipt?transaksi=${transaksiId}`, '_blank');
   };
 
   const getPaymentIcon = (metode: string) => {
@@ -206,38 +206,20 @@ export default function TransactionPage({ role }: TransactionPageProps) {
         </div>
 
         {/* --- Stats Cards --- */}
-        {role === 'administrator' ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {[
-              { label: 'Total', value: stats.total, color: 'text-neutral-800 dark:text-white' },
-              { label: 'Revenue', value: `Rp ${(stats.totalPendapatan / 1000000).toFixed(1)}jt`, color: 'text-green-600' },
-              { label: 'Hari Ini', value: stats.hariIni, color: 'text-blue-600' },
-              { label: 'Tunai', value: stats.tunai, color: 'text-green-600' },
-              { label: 'Debit', value: stats.debit, color: 'text-blue-600' },
-              { label: 'QRIS', value: stats.qris, color: 'text-purple-600' }
-            ].map((stat, i) => (
-              <Card key={i} className="text-center p-4">
-                <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-1 font-medium">{stat.label}</p>
-                <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card className="text-center bg-gradient-to-br from-green-500 to-emerald-600 text-white border-0 shadow-lg">
-              <p className="text-green-100 text-sm mb-1 font-medium">Pendapatan Hari Ini</p>
-              <p className="text-3xl font-bold">Rp {(todayTotal / 1000).toFixed(0)}k</p>
-            </Card>
-            <Card className="text-center p-4">
-              <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-1 font-medium">Total Transaksi</p>
-              <p className="text-3xl font-bold text-neutral-800 dark:text-white">{stats.total}</p>
-            </Card>
-            <Card className="text-center p-4">
-              <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-1 font-medium">Transaksi Hari Ini</p>
-              <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">{stats.hariIni}</p>
-            </Card>
-          </div>
-        )}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card className="p-4">
+            <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-1 font-medium">Pendapatan Hari Ini</p>
+            <p className="text-2xl font-bold text-neutral-800 dark:text-white">Rp {(todayTotal).toLocaleString('id-ID')}</p>
+          </Card>
+          <Card className="p-4">
+            <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-1 font-medium">Total Transaksi</p>
+            <p className="text-2xl font-bold text-neutral-800 dark:text-white">{stats.total}</p>
+          </Card>
+          <Card className="p-4">
+            <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-1 font-medium">Transaksi Hari Ini</p>
+            <p className="text-2xl font-bold text-neutral-800 dark:text-white">{stats.hariIni}</p>
+          </Card>
+        </div>
 
         {/* --- Filters Section --- */}
         <div className={`flex flex-col lg:flex-row gap-4 ${role === 'administrator' ? 'pt-6' : ''}`}>

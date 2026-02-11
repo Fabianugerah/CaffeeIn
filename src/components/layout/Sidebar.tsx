@@ -85,8 +85,8 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   const projectItems = {
     administrator: [{ href: '/dashboard/admin/laporan', icon: FileText, label: 'Laporan Restoran' }],
-    waiter: [{ href: '/dashboard/waiter/laporan', icon: FileText, label: 'Laporan Saya' }],
-    kasir: [{ href: '/dashboard/kasir/laporan', icon: FileText, label: 'Laporan Saya' }],
+    waiter: [],
+    kasir: [],
     owner: [{ href: '/dashboard/owner/laporan', icon: FileText, label: 'Laporan Bisnis' }],
     customer: [],
   };
@@ -105,8 +105,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           bg-white dark:bg-neutral-900
           border-r border-neutral-200 dark:border-neutral-800
           z-40 transform transition-all duration-300 ease-in-out
-          ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-          shadow-2xl`}
+          ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
       >
         <div className="flex flex-col h-full">
           <div className="flex-1 overflow-y-auto">

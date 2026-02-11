@@ -15,9 +15,9 @@ import {
   TrendingUp
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import { 
-  LineChart, Line, BarChart, Bar, XAxis, YAxis, 
-  CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area 
+import {
+  LineChart, Line, BarChart, Bar, XAxis, YAxis,
+  CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area
 } from 'recharts';
 
 export default function AdminDashboard() {
@@ -33,7 +33,7 @@ export default function AdminDashboard() {
     revenueGrowth: 0,
     transaksiGrowth: 0,
   });
-  
+
   const [chartData, setChartData] = useState({
     revenueByDate: [] as any[],
     hourlyOrders: [] as any[],
@@ -41,6 +41,36 @@ export default function AdminDashboard() {
 
   const [loading, setLoading] = useState(true);
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  useEffect(() => {
+    // Deteksi dark mode dengan cara yang lebih reliable
+    const checkDarkMode = () => {
+      const htmlElement = document.documentElement;
+      const isDark = htmlElement.classList.contains('dark');
+      setIsDarkMode(isDark);
+      console.log('Dark Mode:', isDark); // Untuk debugging
+    };
+
+    // Check initial
+    checkDarkMode();
+
+    // Observer untuk track perubahan
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === 'class') {
+          checkDarkMode();
+        }
+      });
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     fetchStats();
@@ -70,7 +100,6 @@ export default function AdminDashboard() {
         supabase.from('detail_order').select('*, order!inner(created_at, tanggal)')
       ]);
 
-      // --- 1. SETUP TANGGAL ---
       const todayDate = new Date();
       const yesterdayDate = new Date();
       yesterdayDate.setDate(yesterdayDate.getDate() - 1);
@@ -78,29 +107,24 @@ export default function AdminDashboard() {
       const todayStr = todayDate.toISOString().split('T')[0];
       const yesterdayStr = yesterdayDate.toISOString().split('T')[0];
 
-      // --- 2. HITUNG PENDAPATAN (REVENUE) ---
       const todayTransaksi = transaksi?.filter((t) => t.tanggal === todayStr) || [];
       const yesterdayTransaksi = transaksi?.filter((t) => t.tanggal === yesterdayStr) || [];
 
       const revenueToday = todayTransaksi.reduce((sum, t) => sum + parseFloat(t.total_bayar.toString()), 0);
       const revenueYesterday = yesterdayTransaksi.reduce((sum, t) => sum + parseFloat(t.total_bayar.toString()), 0);
-      
+
       const revenueGrowth = calculateGrowth(revenueToday, revenueYesterday);
 
-      // --- 3. HITUNG PESANAN (ORDERS) ---
-      // Kita hitung growth berdasarkan JUMLAH ORDER BARU hari ini vs kemarin
       const ordersToday = orders?.filter((o) => o.created_at.startsWith(todayStr)).length || 0;
       const ordersYesterday = orders?.filter((o) => o.created_at.startsWith(yesterdayStr)).length || 0;
-      
+
       const ordersGrowth = calculateGrowth(ordersToday, ordersYesterday);
 
-      // --- 4. HITUNG USER BARU ---
       const usersToday = users?.filter((u) => u.created_at.startsWith(todayStr)).length || 0;
       const usersYesterday = users?.filter((u) => u.created_at.startsWith(yesterdayStr)).length || 0;
 
       const usersGrowth = calculateGrowth(usersToday, usersYesterday);
 
-      // --- 5. HITUNG TRANSAKSI (RECEIPT) ---
       const txTodayCount = todayTransaksi.length;
       const txYesterdayCount = yesterdayTransaksi.length;
       const transaksiGrowth = calculateGrowth(txTodayCount, txYesterdayCount);
@@ -120,18 +144,16 @@ export default function AdminDashboard() {
         transaksiGrowth
       });
 
-      // --- 6. DATA CHART ---
-      // Revenue Chart
       const revenueMap: { [key: string]: number } = {};
       for (let i = 6; i >= 0; i--) {
-          const d = new Date();
-          d.setDate(d.getDate() - i);
-          const dateStr = d.toISOString().split('T')[0];
-          revenueMap[dateStr] = 0;
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const dateStr = d.toISOString().split('T')[0];
+        revenueMap[dateStr] = 0;
       }
       transaksi?.forEach((t) => {
         if (revenueMap[t.tanggal] !== undefined) {
-            revenueMap[t.tanggal] += parseFloat(t.total_bayar);
+          revenueMap[t.tanggal] += parseFloat(t.total_bayar);
         }
       });
       const revenueByDate = Object.entries(revenueMap)
@@ -142,7 +164,6 @@ export default function AdminDashboard() {
         }))
         .sort((a, b) => a.date.localeCompare(b.date));
 
-      // Hourly Chart
       const hourlyMap: { [key: number]: number } = {};
       detailOrders?.forEach((detail) => {
         if (detail.order?.created_at) {
@@ -172,7 +193,7 @@ export default function AdminDashboard() {
         .select('*, users:id_user(nama_user)')
         .order('created_at', { ascending: false })
         .limit(5);
-      
+
       setRecentOrders(data || []);
     } catch (error) {
       console.error('Error fetching recent orders:', error);
@@ -258,6 +279,27 @@ export default function AdminDashboard() {
     },
   ];
 
+  // Custom Tooltip Component dengan styling yang benar
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg p-3 shadow-lg">
+          <p className="text-sm font-semibold text-neutral-900 dark:text-white mb-1">{label}</p>
+          <p className="text-sm text-neutral-600 dark:text-neutral-300">
+            {payload[0].name === 'revenue' ? 'Pendapatan' : 'Pesanan'}:
+            <span className="font-bold ml-1 text-neutral-900 dark:text-white">
+              {payload[0].name === 'revenue'
+                ? `Rp ${payload[0].value.toLocaleString('id-ID')}`
+                : payload[0].value
+              }
+            </span>
+          </p>
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
     <DashboardLayout allowedRoles={['administrator']}>
       <div className="space-y-8 pb-10">
@@ -285,16 +327,14 @@ export default function AdminDashboard() {
                   <h3 className="text-2xl font-bold text-neutral-900 dark:text-white">
                     {stat.value}
                   </h3>
-                  
-                  {/* Hanya tampilkan growth jika tidak di-hide */}
+
                   {!stat.hideGrowth && (
                     <div className="flex items-center gap-1.5 mt-3">
                       <span
-                        className={`flex items-center text-xs font-bold px-1.5 py-0.5 rounded ${
-                          stat.isPositive 
-                            ? 'bg-green-50 text-green-600 dark:bg-green-900/20' 
-                            : 'bg-red-50 text-red-600 dark:bg-red-900/20'
-                        }`}
+                        className={`flex items-center text-xs font-bold px-1.5 py-0.5 rounded ${stat.isPositive
+                          ? 'bg-green-50 text-green-600 dark:bg-green-900/20'
+                          : 'bg-red-50 text-red-600 dark:bg-red-900/20'
+                          }`}
                       >
                         {stat.isPositive ? <ArrowUp className="w-3 h-3 mr-0.5" /> : <ArrowDown className="w-3 h-3 mr-0.5" />}
                         {Math.abs(stat.growth ?? 0).toFixed(1)}%
@@ -305,9 +345,9 @@ export default function AdminDashboard() {
                     </div>
                   )}
                   {stat.hideGrowth && (
-                     <div className="mt-3 text-xs text-neutral-400">
-                        {stat.subtitle}
-                     </div>
+                    <div className="mt-3 text-xs text-neutral-400">
+                      {stat.subtitle}
+                    </div>
                   )}
                 </div>
 
@@ -320,89 +360,99 @@ export default function AdminDashboard() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Chart 1: Tren Pendapatan */}
           <Card className="lg:col-span-2 p-6">
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h3 className="text-lg font-bold text-neutral-800 dark:text-white">Tren Pendapatan</h3>
-                <p className="text-sm text-neutral-500">7 hari terakhir</p>
+                <p className="text-sm text-neutral-500 dark:text-neutral-400">7 hari terakhir</p>
               </div>
               <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
                 <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-400" />
               </div>
             </div>
-            
+
             <div className="h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={chartData.revenueByDate}>
                   <defs>
                     <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.1}/>
-                      <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.1} />
+                      <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" opacity={0.5} />
-                  <XAxis 
-                    dataKey="formattedDate" 
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    vertical={false}
+                    stroke={isDarkMode ? '#374151' : '#E5E7EB'}
+                    opacity={0.5}
+                  />
+                  <XAxis
+                    dataKey="formattedDate"
                     axisLine={false}
                     tickLine={false}
-                    tick={{fontSize: 12, fill: '#9CA3AF'}}
+                    tick={{
+                      fontSize: 12,
+                      fill: isDarkMode ? '#FFFFFF' : '#000000'  // PUTIH/HITAM
+                    }}
                     dy={10}
                   />
-                  <YAxis 
+                  <YAxis
                     axisLine={false}
                     tickLine={false}
-                    tick={{fontSize: 12, fill: '#9CA3AF'}}
-                    tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`} 
-                  />
-                  <Tooltip
-                    contentStyle={{ 
-                      backgroundColor: '#1F2937', 
-                      border: 'none', 
-                      borderRadius: '8px', 
-                      color: '#fff',
-                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                    tick={{
+                      fontSize: 12,
+                      fill: isDarkMode ? '#FFFFFF' : '#000000'  // PUTIH/HITAM
                     }}
-                    formatter={(value: any) => [`Rp ${value.toLocaleString('id-ID')}`, 'Pendapatan']}
+                    tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
                   />
-                  <Area 
-                    type="monotone" 
-                    dataKey="revenue" 
-                    stroke="#10b981" 
-                    strokeWidth={3} 
-                    fillOpacity={1} 
-                    fill="url(#colorRevenue)" 
+                  <Tooltip content={<CustomTooltip />} />
+                  <Area
+                    type="monotone"
+                    dataKey="revenue"
+                    stroke="#10b981"
+                    strokeWidth={3}
+                    fillOpacity={1}
+                    fill="url(#colorRevenue)"
                   />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
           </Card>
 
+          {/* Chart 2: Jam Sibuk */}
           <Card className="p-6">
             <div className="mb-6">
               <h3 className="text-lg font-bold text-neutral-800 dark:text-white">Jam Sibuk</h3>
-              <p className="text-sm text-neutral-500">Pola pesanan per jam</p>
+              <p className="text-sm text-neutral-500 dark:text-neutral-400">Pola pesanan per jam</p>
             </div>
             <div className="h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData.hourlyOrders} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#E5E7EB" opacity={0.5} />
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    horizontal={true}
+                    vertical={false}
+                    stroke={isDarkMode ? '#374151' : '#E5E7EB'}
+                    opacity={0.5}
+                  />
                   <XAxis type="number" hide />
-                  <YAxis 
-                    dataKey="hour" 
-                    type="category" 
+                  <YAxis
+                    dataKey="hour"
+                    type="category"
                     axisLine={false}
                     tickLine={false}
-                    tick={{fontSize: 11, fill: '#6B7280'}}
-                    width={40}
+                    tick={{
+                      fontSize: 11,
+                      fill: isDarkMode ? '#FFFFFF' : '#000000'  // PUTIH/HITAM
+                    }}
+                    width={50}
                   />
-                  <Tooltip
-                    cursor={{fill: 'transparent'}}
-                    contentStyle={{ backgroundColor: '#1F2937', border: 'none', borderRadius: '8px', color: '#fff' }}
-                  />
-                  <Bar 
-                    dataKey="orders" 
-                    fill="#3B82F6" 
-                    radius={[0, 4, 4, 0]} 
+                  <Tooltip content={<CustomTooltip />} />
+                  <Bar
+                    dataKey="orders"
+                    fill="#3B82F6"
+                    radius={[0, 4, 4, 0]}
                     barSize={15}
                   />
                 </BarChart>
@@ -411,26 +461,26 @@ export default function AdminDashboard() {
           </Card>
         </div>
 
-        <Card className="border border-neutral-200 dark:border-neutral-800 p-0 overflow-hidden">
-          <div className="py-6 border-b border-neutral-100 dark:border-neutral-800 flex justify-between items-center bg-neutral-50/50 dark:bg-neutral-900/50">
-            <div>
-              <h3 className="text-xl font-bold text-neutral-800 dark:text-white">Pesanan Terbaru</h3>
-              <p className="text-sm text-neutral-500">Monitor transaksi yang baru masuk</p>
-            </div>
-            <a href="/dashboard/admin/orders" className="text-sm font-semibold text-neutral-600 dark:text-neutral-400 hover:text-neutral-700">
-              Lihat Semua
-            </a>
+        <div className="flex justify-between items-center pt-8">
+          <div>
+            <h3 className="text-2xl font-bold text-neutral-800 dark:text-white">Pesanan Terbaru</h3>
+            <p className="text-sm text-neutral-600 dark:text-neutral-400">Monitor transaksi yang baru masuk</p>
           </div>
+          <a href="/dashboard/admin/orders" className="text-sm font-semibold text-neutral-600 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300">
+            Lihat Semua
+          </a>
+        </div>
 
+        <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-md overflow-hidden border border-neutral-200 dark:border-neutral-800 flex flex-col">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-neutral-50 dark:bg-neutral-800 border-b border-neutral-100 dark:border-neutral-700">
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-neutral-500 uppercase tracking-wider">Order ID</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-neutral-500 uppercase tracking-wider">Pelanggan</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-neutral-500 uppercase tracking-wider">Tanggal</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-neutral-500 uppercase tracking-wider">Total</th>
-                  <th className="px-6 py-4 text-center text-xs font-bold text-neutral-500 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">Order ID</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">Pelanggan</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">Tanggal</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">Total</th>
+                  <th className="px-6 py-4 text-center text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800 bg-white dark:bg-neutral-900">
@@ -442,7 +492,7 @@ export default function AdminDashboard() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-600 dark:text-neutral-300">
                       {order.users?.nama_user || 'Guest'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-s m text-neutral-500 dark:text-neutral-400">
                       {new Date(order.created_at).toLocaleDateString('id-ID', {
                         day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
                       })}
@@ -459,7 +509,7 @@ export default function AdminDashboard() {
                 ))}
                 {recentOrders.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="px-6 py-8 text-center text-neutral-500 italic">
+                    <td colSpan={5} className="px-6 py-8 text-center text-neutral-500 dark:text-neutral-400 italic">
                       Belum ada pesanan terbaru.
                     </td>
                   </tr>
@@ -467,8 +517,9 @@ export default function AdminDashboard() {
               </tbody>
             </table>
           </div>
-        </Card>
+        </div>
+
       </div>
     </DashboardLayout>
   );
-}
+} 

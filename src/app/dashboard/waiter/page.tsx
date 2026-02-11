@@ -6,10 +6,9 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import StatsCard from '@/components/ui/StatsCard';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
-import { 
-  ShoppingCart, 
-  Clock, 
-  CheckCircle, 
+import {
+  Clock,
+  CheckCircle,
   TrendingUp,
   AlertCircle,
   Package,
@@ -18,29 +17,41 @@ import {
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
+import AlertDialog from '@/components/ui/Alertdialog';
+
 
 export default function WaiterDashboard() {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
-  
+
   const [stats, setStats] = useState({
     orderMenungguAntar: 0,
     orderSedangDiantar: 0,
     orderSelesaiHariIni: 0,
     totalOrderHariIni: 0,
   });
-  
+
   const [pendingOrders, setPendingOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [processing, setProcessing] = useState(false);
+
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [showSuccessAlert, setShowSuccessAlert] = useState(false);
+  const [showErrorAlert, setShowErrorAlert] = useState(false);
+
+  const [errorMessage, setErrorMessage] = useState('');
+  const [orderToComplete, setOrderToComplete] = useState<number | null>(null);
+
 
   useEffect(() => {
     fetchDashboardData();
-    
+
     // Auto refresh setiap 30 detik
     const interval = setInterval(() => {
       fetchDashboardData();
     }, 30000);
-    
+
     return () => clearInterval(interval);
   }, []);
 
@@ -48,40 +59,38 @@ export default function WaiterDashboard() {
     try {
       setLoading(true);
       const today = new Date().toISOString().split('T')[0];
-      
-      // Fetch semua orders
+
+      // Ambil semua order (untuk statistik global)
       const { data: allOrders } = await supabase
         .from('order')
         .select('*')
         .order('created_at', { ascending: false });
 
+      // Ambil khusus order PROSES (siap diantar)
+      const { data: readyToDeliver, error: readyError } = await supabase
+        .from('order')
+        .select('*')
+        .eq('status_order', 'proses')
+        .order('created_at', { ascending: false });
+      if (readyError) throw readyError;
+
       const todayOrders = allOrders?.filter((o) => o.tanggal === today) || [];
-      
-      // Orders yang siap diantar (status = proses atau selesai tapi belum ada transaksi)
-      const { data: transaksiData } = await supabase
-        .from('transaksi')
-        .select('id_order');
-      
-      const paidOrderIds = new Set(transaksiData?.map(t => t.id_order) || []);
-      
-      const readyToDeliver = allOrders?.filter(
-        (o) => o.status_order === 'proses' && !paidOrderIds.has(o.id_order)
-      ) || [];
-      
+
       const delivered = allOrders?.filter(
-        (o) => o.status_order === 'selesai' && paidOrderIds.has(o.id_order)
+        (o) => o.status_order === 'selesai'
       ) || [];
-      
+
       const deliveredToday = delivered.filter(o => o.tanggal === today);
 
       setStats({
-        orderMenungguAntar: readyToDeliver.length,
-        orderSedangDiantar: allOrders?.filter((o) => o.status_order === 'proses').length || 0,
+        orderMenungguAntar: readyToDeliver?.length || 0,
+        orderSedangDiantar: readyToDeliver?.length || 0,
         orderSelesaiHariIni: deliveredToday.length,
         totalOrderHariIni: todayOrders.length,
       });
 
-      setPendingOrders(readyToDeliver.slice(0, 5));
+
+      setPendingOrders(readyToDeliver?.slice(0, 5) || []);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
@@ -89,24 +98,37 @@ export default function WaiterDashboard() {
     }
   };
 
-  const handleCompleteOrder = async (orderId: number) => {
-    if (!confirm('Konfirmasi pesanan sudah diantar ke meja?')) return;
+  const handleCompleteOrderClick = (orderId: number) => {
+    setOrderToComplete(orderId);
+    setShowConfirmDialog(true);
+  };
+
+  const handleConfirmComplete = async () => {
+    if (!orderToComplete) return;
+
+    setProcessing(true);
 
     try {
       const { error } = await supabase
         .from('order')
         .update({ status_order: 'selesai' })
-        .eq('id_order', orderId);
+        .eq('id_order', orderToComplete);
 
       if (error) throw error;
 
-      alert('Pesanan berhasil diselesaikan!');
+      setShowConfirmDialog(false);
+      setShowSuccessAlert(true);
       fetchDashboardData();
     } catch (error: any) {
-      console.error('Error completing order:', error);
-      alert('Gagal menyelesaikan pesanan: ' + error.message);
+      setErrorMessage(error.message || 'Terjadi kesalahan');
+      setShowConfirmDialog(false);
+      setShowErrorAlert(true);
+    } finally {
+      setProcessing(false);
+      setOrderToComplete(null);
     }
   };
+
 
   if (loading) {
     return (
@@ -227,14 +249,15 @@ export default function WaiterDashboard() {
                     <div>
                       <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Total</p>
                       <p className="font-bold text-lg text-gray-800 dark:text-white">
-                        Rp {parseFloat(order.total_harga).toLocaleString('id-ID')}
+                        Rp {parseFloat(order.total_harga || 0).toLocaleString('id-ID')}
                       </p>
                     </div>
                     <Button
                       size="sm"
-                      onClick={() => handleCompleteOrder(order.id_order)}
+                      onClick={() => handleCompleteOrderClick(order.id_order)}
                       className="bg-green-600 hover:bg-green-700"
                     >
+
                       <CheckCircle className="w-4 h-4 mr-1" />
                       Selesai
                     </Button>
@@ -254,27 +277,38 @@ export default function WaiterDashboard() {
             </div>
           )}
         </Card>
-
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Button
-            variant="outline"
-            onClick={() => router.push('/dashboard/waiter/orders')}
-            className="flex items-center justify-center gap-2 h-14"
-          >
-            <ShoppingCart className="w-5 h-5" />
-            <span>Daftar Pesanan</span>
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => router.push('/dashboard/waiter/laporan')}
-            className="flex items-center justify-center gap-2 h-14"
-          >
-            <TrendingUp className="w-5 h-5" />
-            <span>Laporan Saya</span>
-          </Button>
-        </div>
       </div>
+
+      <ConfirmDialog
+        isOpen={showConfirmDialog}
+        onClose={() => setShowConfirmDialog(false)}
+        onConfirm={handleConfirmComplete}
+        title="Konfirmasi Pesanan Selesai"
+        message="Apakah Anda yakin pesanan sudah diantar ke meja customer?"
+        type="success"
+        confirmText="Ya, Sudah Diantar"
+        cancelText="Batal"
+        loading={processing}
+      />
+
+      <AlertDialog
+        isOpen={showSuccessAlert}
+        onClose={() => setShowSuccessAlert(false)}
+        title="Pesanan Berhasil Diselesaikan!"
+        message="Pesanan telah berhasil ditandai sebagai selesai."
+        type="success"
+        buttonText="OK"
+      />
+
+      <AlertDialog
+        isOpen={showErrorAlert}
+        onClose={() => setShowErrorAlert(false)}
+        title="Terjadi Kesalahan"
+        message={errorMessage}
+        type="error"
+        buttonText="Tutup"
+      />
+
     </DashboardLayout>
   );
 }

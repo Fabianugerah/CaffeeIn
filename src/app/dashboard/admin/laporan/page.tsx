@@ -15,8 +15,6 @@ import {
   CreditCard,
   Smartphone,
   RefreshCw,
-  Search,
-  Users,
   ArrowUp,
   ArrowDown
 } from 'lucide-react';
@@ -28,7 +26,6 @@ import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, R
 export default function AdminLaporanPage() {
   const [initialLoading, setInitialLoading] = useState(true);
   const [isFetching, setIsFetching] = useState(false);
-  const [search, setSearch] = useState('');
 
   // Date Range State (Object Date)
   const [dateRange, setDateRange] = useState<{ startDate: Date | null; endDate: Date | null }>({
@@ -52,7 +49,7 @@ export default function AdminLaporanPage() {
     ordersByStatus: { pending: 0, proses: 0, selesai: 0, dibatalkan: 0 },
     paymentMethods: { tunai: 0, debit: 0, qris: 0 },
     hourlyOrders: [] as any[],
-    transactionList: [] as any[], 
+    transactionList: [] as any[],
   });
 
   useEffect(() => {
@@ -90,11 +87,11 @@ export default function AdminLaporanPage() {
 
       // --- 2. DATA PERIODE SEBELUMNYA (Untuk Growth Comparison) ---
       const timeDiff = dateRange.endDate.getTime() - dateRange.startDate.getTime();
-      const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24)); 
+      const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
 
       const prevEndDate = new Date(dateRange.startDate);
-      prevEndDate.setDate(prevEndDate.getDate() - 1); 
-      
+      prevEndDate.setDate(prevEndDate.getDate() - 1);
+
       const prevStartDate = new Date(prevEndDate);
       prevStartDate.setDate(prevStartDate.getDate() - daysDiff);
 
@@ -110,7 +107,7 @@ export default function AdminLaporanPage() {
       ]);
 
       // --- 3. HITUNG STATISTIK ---
-      
+
       // Current Period Stats
       const totalRevenue = transaksi?.reduce((sum, t) => sum + parseFloat(t.total_bayar), 0) || 0;
       const totalOrders = orders?.length || 0;
@@ -184,14 +181,14 @@ export default function AdminLaporanPage() {
         qris: transaksi?.filter((t) => t.metode_pembayaran === 'qris').length || 0,
       };
 
-      setReportData({ 
-        overview, 
-        revenueByDate, 
-        topMenu, 
+      setReportData({
+        overview,
+        revenueByDate,
+        topMenu,
         ordersByStatus: { pending: 0, proses: 0, selesai: 0, dibatalkan: 0 },
-        paymentMethods, 
+        paymentMethods,
         hourlyOrders,
-        transactionList: transaksi || [] 
+        transactionList: transaksi || []
       });
     } catch (error) {
       console.error('Error:', error);
@@ -200,41 +197,36 @@ export default function AdminLaporanPage() {
     }
   };
 
-  const filteredTransactions = reportData.transactionList.filter(item => 
-    item.id_transaksi.toString().includes(search) || 
-    item.order?.no_meja?.toLowerCase().includes(search.toLowerCase()) ||
-    item.users?.nama_user?.toLowerCase().includes(search.toLowerCase())
-  );
-
   // --- CONFIG CARD STATISTIK ---
   const statCards = [
+    
     {
-        title: "Total Pesanan",
-        value: reportData.overview.totalOrders.toLocaleString(),
-        growth: reportData.overview.orderGrowth,
-        icon: ShoppingCart,
-        iconBg: "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
+      title: "Total Pendapatan",
+      value: `Rp ${(reportData.overview.totalRevenue).toLocaleString('id-ID')}`,
+      growth: reportData.overview.revenueGrowth,
+      icon: DollarSign,
+      iconBg: "bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400"
     },
     {
-        title: "Total Pendapatan",
-        value: `Rp ${(reportData.overview.totalRevenue / 1_000_000).toFixed(1)} jt`,
-        growth: reportData.overview.revenueGrowth,
-        icon: DollarSign,
-        iconBg: "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400"
+      title: "Total Pesanan",
+      value: reportData.overview.totalOrders.toLocaleString(),
+      growth: reportData.overview.orderGrowth,
+      icon: ShoppingCart,
+      iconBg: "bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400"
     },
     {
-        title: "Total Transaksi",
-        value: reportData.overview.totalTransaksi.toLocaleString(),
-        growth: reportData.overview.transaksiGrowth,
-        icon: FileText,
-        iconBg: "bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400"
+      title: "Rata-rata Order",
+      value: `Rp ${(reportData.overview.avgOrderValue).toLocaleString('id-ID')}`,
+      growth: reportData.overview.avgOrderGrowth,
+      icon: TrendingUp,
+      iconBg: "bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400"
     },
     {
-        title: "Rata-rata Order",
-        value: `Rp ${(reportData.overview.avgOrderValue / 1000).toFixed(0)}k`,
-        growth: reportData.overview.avgOrderGrowth,
-        icon: TrendingUp,
-        iconBg: "bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400"
+      title: "Total Transaksi",
+      value: reportData.overview.totalTransaksi.toLocaleString(),
+      growth: reportData.overview.transaksiGrowth,
+      icon: FileText,
+      iconBg: "bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400"
     }
   ];
 
@@ -250,7 +242,7 @@ export default function AdminLaporanPage() {
     <DashboardLayout allowedRoles={['administrator']}>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-8">
           <div>
             <h1 className="text-3xl font-bold text-neutral-800 dark:text-white">Laporan & Analytics</h1>
             <p className="text-neutral-600 dark:text-neutral-400 mt-1">Analisis performa dan insight bisnis restoran</p>
@@ -265,59 +257,41 @@ export default function AdminLaporanPage() {
           </div>
         </div>
 
-        {/* Filter Section - Menggunakan DateRangePicker */}
-        <Card className="p-4 bg-neutral-50 dark:bg-[#0a0a0a] border border-neutral-200 dark:border-neutral-800">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-            
-            {/* Custom Date Picker */}
-            <DateRangePicker 
-                startDate={dateRange.startDate}
-                endDate={dateRange.endDate}
-                onChange={(start, end) => setDateRange({ startDate: start, endDate: end })}
-            />
 
-            {/* Search Input */}
-            <div className="w-full lg:w-1/3">
-                <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
-                    <input 
-                        type="text" 
-                        placeholder="Cari ID transaksi, meja, kasir..." 
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#18181b] border border-neutral-300 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm text-neutral-900 dark:text-white transition-all"
-                    />
-                </div>
-            </div>
+        {/* Custom Date Picker */}
+        <DateRangePicker
+          startDate={dateRange.startDate}
+          endDate={dateRange.endDate}
+          onChange={(start, end) => setDateRange({ startDate: start, endDate: end })}
+        />
 
-          </div>
-        </Card>
+
 
         {/* Overview Statistics */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
           {statCards.map((stat, index) => {
-             const isPositive = stat.growth >= 0;
-             return (
-                <Card key={index} className="relative overflow-hidden hover:shadow-lg transition-all duration-300 border border-neutral-100 dark:border-neutral-800">
-                    <div className="flex items-start justify-between">
-                        <div>
-                            <p className="text-sm font-medium text-neutral-500 dark:text-neutral-400 mb-1">{stat.title}</p>
-                            <h3 className="text-2xl font-bold text-neutral-900 dark:text-white">{stat.value}</h3>
-                            
-                            <div className="flex items-center gap-1.5 mt-3">
-                                <span className={`flex items-center text-xs font-bold px-1.5 py-0.5 rounded ${isPositive ? 'bg-green-50 text-green-600 dark:bg-green-900/20' : 'bg-red-50 text-red-600 dark:bg-red-900/20'}`}>
-                                    {isPositive ? <ArrowUp className="w-3 h-3 mr-0.5" /> : <ArrowDown className="w-3 h-3 mr-0.5" />}
-                                    {Math.abs(stat.growth).toFixed(1)}%
-                                </span>
-                                <span className="text-xs text-neutral-400">vs periode lalu</span>
-                            </div>
-                        </div>
-                        <div className={`p-3 rounded-xl ${stat.iconBg}`}>
-                            <stat.icon className="w-6 h-6" />
-                        </div>
+            const isPositive = stat.growth >= 0;
+            return (
+              <Card key={index} className="relative overflow-hidden hover:shadow-lg transition-all duration-300 border border-neutral-100 dark:border-neutral-800">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-neutral-500 dark:text-neutral-400 mb-1">{stat.title}</p>
+                    <h3 className="text-2xl font-bold text-neutral-900 dark:text-white">{stat.value}</h3>
+
+                    <div className="flex items-center gap-1.5 mt-3">
+                      <span className={`flex items-center text-xs font-bold px-1.5 py-0.5 rounded ${isPositive ? 'bg-green-50 text-green-600 dark:bg-green-900/20' : 'bg-red-50 text-red-600 dark:bg-red-900/20'}`}>
+                        {isPositive ? <ArrowUp className="w-3 h-3 mr-0.5" /> : <ArrowDown className="w-3 h-3 mr-0.5" />}
+                        {Math.abs(stat.growth).toFixed(1)}%
+                      </span>
+                      <span className="text-xs text-neutral-400">  periode lalu</span>
                     </div>
-                </Card>
-             );
+                  </div>
+                  <div className={`p-3 rounded-xl ${stat.iconBg}`}>
+                    <stat.icon className="w-6 h-6" />
+                  </div>
+                </div>
+              </Card>
+            );
           })}
         </div>
 
@@ -326,30 +300,30 @@ export default function AdminLaporanPage() {
           <Card>
             <h3 className="text-lg font-semibold mb-4 text-neutral-800 dark:text-white">Tren Pendapatan Harian</h3>
             <div className="h-[300px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={reportData.revenueByDate}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.1} />
-                    <XAxis dataKey="formattedDate" stroke="#9ca3af" style={{ fontSize: '12px' }} />
-                    <YAxis stroke="#9ca3af" style={{ fontSize: '12px' }} tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`} />
-                    <Tooltip contentStyle={{ backgroundColor: '#1f2937', border: 'none', borderRadius: '8px', color: '#fff' }} formatter={(value: any) => [`Rp ${value.toLocaleString('id-ID')}`, 'Revenue']} />
-                    <Line type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={3} dot={{ fill: '#10b981', r: 4 }} activeDot={{ r: 6 }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.1} />
+                  <XAxis dataKey="formattedDate" stroke="#9ca3af" style={{ fontSize: '12px' }} />
+                  <YAxis stroke="#9ca3af" style={{ fontSize: '12px' }} tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`} />
+                  <Tooltip contentStyle={{ backgroundColor: '#1f2937', border: 'none', borderRadius: '8px', color: '#fff' }} formatter={(value: any) => [`Rp ${value.toLocaleString('id-ID')}`, 'Revenue']} />
+                  <Line type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={3} dot={{ fill: '#10b981', r: 4 }} activeDot={{ r: 6 }} />
                 </LineChart>
-                </ResponsiveContainer>
+              </ResponsiveContainer>
             </div>
           </Card>
 
           <Card>
             <h3 className="text-lg font-semibold mb-4 text-neutral-800 dark:text-white">Pola Pesanan per Jam</h3>
             <div className="h-[300px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={reportData.hourlyOrders}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.1} />
-                    <XAxis dataKey="hour" stroke="#9ca3af" style={{ fontSize: '11px' }} />
-                    <YAxis stroke="#9ca3af" style={{ fontSize: '12px' }} />
-                    <Tooltip contentStyle={{ backgroundColor: '#1f2937', border: 'none', borderRadius: '8px', color: '#fff' }} formatter={(value: any) => [`${value} pesanan`, 'Total']} />
-                    <Bar dataKey="orders" fill="#3b82f6" radius={[8, 8, 0, 0]} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.1} />
+                  <XAxis dataKey="hour" stroke="#9ca3af" style={{ fontSize: '11px' }} />
+                  <YAxis stroke="#9ca3af" style={{ fontSize: '12px' }} />
+                  <Tooltip contentStyle={{ backgroundColor: '#1f2937', border: 'none', borderRadius: '8px', color: '#fff' }} formatter={(value: any) => [`${value} pesanan`, 'Total']} />
+                  <Bar dataKey="orders" fill="#3b82f6" radius={[8, 8, 0, 0]} />
                 </BarChart>
-                </ResponsiveContainer>
+              </ResponsiveContainer>
             </div>
           </Card>
         </div>
@@ -371,19 +345,19 @@ export default function AdminLaporanPage() {
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-neutral-900 dark:text-white truncate">{item.masakan?.nama_masakan || 'Unknown'}</p>
                       <div className="flex items-center gap-2 mt-1">
-                          <span className="text-[10px] px-2 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">
-                            {item.masakan?.kategori || 'Menu'}
-                          </span>
-                          <p className="text-xs text-neutral-500 dark:text-neutral-400">{item.total} terjual</p>
+                        <span className="text-[10px] px-2 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">
+                          {item.masakan?.kategori || 'Menu'}
+                        </span>
+                        <p className="text-xs text-neutral-500 dark:text-neutral-400">{item.total} terjual</p>
                       </div>
                     </div>
                     <div className="text-right">
                       <p className="font-semibold text-neutral-900 dark:text-white">Rp {(item.revenue / 1000).toFixed(0)}k</p>
                       {idx === 0 && (
-                          <div className="flex items-center justify-end gap-1 text-orange-500 mt-0.5">
-                            <Star className="w-3 h-3 fill-current" />
-                            <span className="text-[10px] font-bold uppercase">Top 1</span>
-                          </div>
+                        <div className="flex items-center justify-end gap-1 text-orange-500 mt-0.5">
+                          <Star className="w-3 h-3 fill-current" />
+                          <span className="text-[10px] font-bold uppercase">Top 1</span>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -420,75 +394,6 @@ export default function AdminLaporanPage() {
             </div>
           </Card>
         </div>
-
-        {/* --- TABEL RIWAYAT TRANSAKSI --- */}
-        <Card className="border border-neutral-200 dark:border-neutral-800 p-0 overflow-hidden">
-            <div className="p-6 border-b border-neutral-100 dark:border-neutral-800 flex justify-between items-center bg-neutral-50/50 dark:bg-neutral-900/50">
-                <div>
-                    <h3 className="text-lg font-bold text-neutral-800 dark:text-white">Riwayat Transaksi</h3>
-                    <p className="text-sm text-neutral-500">Daftar transaksi dalam periode terpilih</p>
-                </div>
-                <span className="text-xs text-neutral-500 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 px-3 py-1 rounded-full shadow-sm">
-                    Total: {filteredTransactions.length}
-                </span>
-            </div>
-            
-            <div className="overflow-x-auto">
-                <table className="w-full">
-                    <thead className="bg-neutral-50 dark:bg-neutral-800 border-b border-neutral-100 dark:border-neutral-700">
-                        <tr>
-                            <th className="px-6 py-4 text-left text-xs font-bold text-neutral-500 uppercase tracking-wider">ID</th>
-                            <th className="px-6 py-4 text-left text-xs font-bold text-neutral-500 uppercase tracking-wider">Tanggal</th>
-                            <th className="px-6 py-4 text-left text-xs font-bold text-neutral-500 uppercase tracking-wider">Meja</th>
-                            <th className="px-6 py-4 text-left text-xs font-bold text-neutral-500 uppercase tracking-wider">Kasir</th>
-                            <th className="px-6 py-4 text-left text-xs font-bold text-neutral-500 uppercase tracking-wider">Metode</th>
-                            <th className="px-6 py-4 text-right text-xs font-bold text-neutral-500 uppercase tracking-wider">Total</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800 bg-white dark:bg-neutral-900">
-                        {filteredTransactions.length === 0 ? (
-                            <tr>
-                                <td colSpan={6} className="px-6 py-12 text-center text-neutral-500 italic">
-                                    Tidak ada transaksi ditemukan pada periode ini.
-                                </td>
-                            </tr>
-                        ) : (
-                            filteredTransactions.map((t) => (
-                                <tr key={t.id_transaksi} className="hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors">
-                                    <td className="px-6 py-4 text-sm font-medium text-neutral-900 dark:text-white">#{t.id_transaksi}</td>
-                                    <td className="px-6 py-4 text-sm text-neutral-500">
-                                        {new Date(t.tanggal).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
-                                    </td>
-                                    <td className="px-6 py-4 text-sm font-medium text-neutral-800 dark:text-neutral-200">
-                                        Meja {t.order?.no_meja || '-'}
-                                    </td>
-                                    <td className="px-6 py-4 text-sm text-neutral-600 dark:text-neutral-400">
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-6 h-6 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-xs text-neutral-500">
-                                                <Users className="w-3 h-3" />
-                                            </div>
-                                            {t.users?.nama_user || '-'}
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold uppercase border 
-                                            ${t.metode_pembayaran === 'tunai' ? 'text-green-600 bg-green-100 dark:bg-green-900/30 border-green-200 dark:border-green-800' : 
-                                                t.metode_pembayaran === 'debit' ? 'text-blue-600 bg-blue-100 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800' :
-                                                'text-purple-600 bg-purple-100 dark:bg-purple-900/30 border-purple-200 dark:border-purple-800'
-                                            }`}>
-                                            {t.metode_pembayaran}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 text-sm font-bold text-neutral-900 dark:text-white text-right tabular-nums">
-                                        Rp {parseFloat(t.total_bayar).toLocaleString('id-ID')}
-                                    </td>
-                                </tr>
-                            ))
-                        )}
-                    </tbody>
-                </table>
-            </div>
-        </Card>
 
       </div>
     </DashboardLayout>

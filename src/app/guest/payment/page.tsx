@@ -4,7 +4,6 @@ import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
-import Link from 'next/link';
 import {
   ArrowLeft,
   Copy,
@@ -119,9 +118,18 @@ function PaymentContent() {
           .single();
 
         if (transaksi && transaksi.status_pembayaran === 'lunas') {
+
+          // Ensure order status is 'pending' after payment is completed
+          await supabase
+            .from('order')
+            .update({ status_order: 'pending' })
+            .eq('id_order', order.id_order);
+
           setSuccessTransaksi(transaksi);
           setShowSuccessModal(true);
         }
+
+
       } catch (error) {
         console.error('Error checking payment status:', error);
       }
@@ -319,10 +327,9 @@ function PaymentContent() {
 
       if (updateError) throw updateError;
 
-      // Update status order menjadi selesai
       const { error: orderError } = await supabase
         .from('order')
-        .update({ status_order: 'selesai' })
+        .update({ status_order: 'pending' })
         .eq('id_order', order.id_order);
 
       if (orderError) {

@@ -31,7 +31,7 @@ export default function GuestFooter() {
     <footer className="bg-neutral-50 dark:bg-neutral-950 pt-10 lg:pt-20 border-t border-neutral-200 dark:border-neutral-800 mt-10 lg:mt-16 flex flex-col justify-between transition-colors duration-300">
 
       {/* BAGIAN ATAS: Konten Utama Footer */}
-      <div className="max-w-[1440px] mx-auto px-6 w-full flex-grow mb-16 lg:mb-24">
+      <div className="max-w-[1440px] mx-auto px-6 w-full flex-grow mb-10 lg:mb-20">
         <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-12 gap-8 lg:gap-6">
 
           {/* KOLOM 1: Brand & Copyright */}
