@@ -1,16 +1,73 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import localFont from 'next/font/local'
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+const generalSans = localFont({
+  src: [
+    {
+      path: './fonts/GeneralSans-Extralight.otf',
+      weight: '200',
+      style: 'normal',
+    },
+    {
+      path: './fonts/GeneralSans-ExtralightItalic.otf',
+      weight: '200',
+      style: 'italic',
+    },
+    {
+      path: './fonts/GeneralSans-Light.otf',
+      weight: '300',
+      style: 'normal',
+    },
+    {
+      path: './fonts/GeneralSans-LightItalic.otf',
+      weight: '300',
+      style: 'italic',
+    },
+    {
+      path: './fonts/GeneralSans-Regular.otf',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: './fonts/GeneralSans-Italic.otf',
+      weight: '400',
+      style: 'italic',
+    },
+    {
+      path: './fonts/GeneralSans-Medium.otf',
+      weight: '500',
+      style: 'normal',
+    },
+    {
+      path: './fonts/GeneralSans-MediumItalic.otf',
+      weight: '500',
+      style: 'italic',
+    },
+    {
+      path: './fonts/GeneralSans-Semibold.otf',
+      weight: '600',
+      style: 'normal',
+    },
+    {
+      path: './fonts/GeneralSans-SemiboldItalic.otf',
+      weight: '600',
+      style: 'italic',
+    },
+    {
+      path: './fonts/GeneralSans-Bold.otf',
+      weight: '700',
+      style: 'normal',
+    },
+    {
+      path: './fonts/GeneralSans-BoldItalic.otf',
+      weight: '700',
+      style: 'italic',
+    },
+  ],
+  variable: '--font-general-sans',
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
   title: "CaffeeIn - Authentic and Modern Coffee Shop",
@@ -66,7 +123,7 @@ export default function RootLayout({
         />
       </head>
       <body 
-        className={`${geistSans.variable} ${geistMono.variable} antialiased 
+        className={`${generalSans.className} antialiased 
           bg-white dark:bg-neutral-950 
           text-neutral-900 dark:text-neutral-100 
           selection:bg-orange-500/30 selection:text-orange-900 dark:selection:text-orange-200
