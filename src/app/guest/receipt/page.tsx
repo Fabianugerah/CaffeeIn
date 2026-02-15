@@ -1,23 +1,30 @@
 // src/app/guest/receipt/page.tsx
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
+import { useEffect, useState, Suspense, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useCartStore } from '@/store/cartStore';
-import { Check } from 'lucide-react';
+import { Check, Download, Home } from 'lucide-react';
 import DigitalReceipt from '@/components/payment/DigitalReceipt';
 import PaymentSteps from '@/components/payment/PaymentSteps';
 import Navbar from '@/components/layout/NavbarCustomer';
 import Footer from '@/components/layout/FooterCustomer';
+import Button from '@/components/ui/Button';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 function ReceiptContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [transaksi, setTransaksi] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [confirmPrintOpen, setConfirmPrintOpen] = useState(false);
+  const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
 
-  // 2. Ambil fungsi clearCart dari store
+  // Ambil fungsi clearCart dari store
   const clearCart = useCartStore((state) => state.clearCart);
 
   // State dummy untuk Navbar props
@@ -57,7 +64,7 @@ function ReceiptContent() {
 
       setTransaksi(data);
 
-      // 3. LOGIKA PENTING:
+      // LOGIKA PENTING:
       // Jika data transaksi berhasil ditemukan (artinya pembayaran sukses),
       // maka kita KOSONGKAN keranjang belanja agar user bisa pesan baru lagi.
       clearCart();
@@ -69,6 +76,48 @@ function ReceiptContent() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDownloadPDF = async () => {
+    const element = document.getElementById('digital-receipt');
+    if (!element) return;
+
+    try {
+      setIsDownloading(true);
+      const canvas = await html2canvas(element, {
+        scale: 3,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdfWidth = 80;
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: [pdfWidth, pdfHeight]
+      });
+
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      
+      const dateObj = new Date(transaksi.tanggal);
+      const dateStr = dateObj.toISOString().slice(0, 10).replace(/-/g, '');
+      const receiptCode = `${dateStr}${transaksi.id_transaksi.toString().padStart(4, '0')}`;
+      
+      pdf.save(`Struk-${receiptCode}.pdf`);
+
+    } catch (error) {
+      console.error('Gagal PDF:', error);
+      alert('Gagal cetak PDF');
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  const handleBackToMenu = () => {
+    router.push('/guest/menu');
   };
 
   if (loading) {
@@ -85,6 +134,34 @@ function ReceiptContent() {
 
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-white flex flex-col transition-colors duration-300">
+      {/* Confirm Print Dialog */}
+      <ConfirmDialog
+        isOpen={confirmPrintOpen}
+        onClose={() => setConfirmPrintOpen(false)}
+        onConfirm={() => {
+          setConfirmPrintOpen(false);
+          handleDownloadPDF();
+        }}
+        title="Cetak Struk?"
+        message="Apakah kamu yakin ingin mencetak struk ini?"
+        type="info"
+        confirmText="Cetak"
+      />
+
+      {/* Confirm Close Dialog */}
+      <ConfirmDialog
+        isOpen={confirmCloseOpen}
+        onClose={() => setConfirmCloseOpen(false)}
+        onConfirm={() => {
+          setConfirmCloseOpen(false);
+          handleBackToMenu();
+        }}
+        title="Kembali ke Menu?"
+        message="Apakah kamu yakin ingin kembali ke menu utama?"
+        type="warning"
+        confirmText="Ya, Kembali"
+      />
+
       {/* Navbar */}
       <div className="print:hidden">
         <Navbar searchTerm={searchTerm} onSearchChange={setSearchTerm} />
@@ -116,12 +193,37 @@ function ReceiptContent() {
             </p>
           </div>
 
-          {/* Komponen Struk Digital */}
-          <div className="animate-scale-in flex justify-center px-4 sm:px-0">
-            <DigitalReceipt
-              transaksi={transaksi}
-              onClose={() => router.push('/guest/menu')}
-            />
+          {/* Komponen Struk Digital & Buttons */}
+          <div className="animate-scale-in flex flex-col items-center gap-6 w-full max-w-sm mx-auto px-4 sm:px-0 pb-10">
+            
+            {/* Struk Digital */}
+            <DigitalReceipt transaksi={transaksi} />
+
+            {/* Action Buttons */}
+            <div className="flex flex-col w-full gap-3 print:hidden">
+              <Button
+                onClick={() => setConfirmPrintOpen(true)}
+                disabled={isDownloading}
+                className="bg-neutral-800 hover:bg-neutral-700 text-white border-none h-12 flex items-center justify-center"
+              >
+                {isDownloading ? (
+                  <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2" />
+                ) : (
+                  <Download className="w-4 h-4 mr-2" />
+                )}
+                <span className="text-xs sm:text-sm">Cetak Struk</span>
+              </Button>
+
+              <Button
+                variant="outline"
+                onClick={() => setConfirmCloseOpen(true)}
+                className="w-full border border-neutral-200 dark:border-neutral-800 text-black dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-800 bg-transparent h-12 flex items-center justify-center"
+              >
+                <Home className="w-4 h-4 mr-2" />
+                <span className="text-xs sm:text-sm">Menu Utama</span>
+              </Button>
+            </div>
+
           </div>
 
         </div>

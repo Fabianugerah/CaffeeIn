@@ -23,6 +23,8 @@ import { paymentService, PAYMENT_METHODS } from '@/lib/services/paymentService';
 import PaymentSteps from '@/components/payment/PaymentSteps';
 import Navbar from '@/components/layout/NavbarCustomer';
 import Footer from '@/components/layout/FooterCustomer';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
+import AlertDialog from '@/components/ui/Alertdialog';
 
 // KONFIGURASI PAJAK (10%)
 const TAX_RATE = 0.10;
@@ -61,6 +63,21 @@ function PaymentContent() {
     total: 0
   });
 
+  // State untuk modal dialogs
+  const [confirmBackDialog, setConfirmBackDialog] = useState(false);
+  const [confirmPaymentDialog, setConfirmPaymentDialog] = useState(false);
+  const [alertDialog, setAlertDialog] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    type: 'info' | 'warning' | 'error' | 'success';
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    type: 'info'
+  });
+
   useEffect(() => {
     const orderId = searchParams.get('order');
     if (orderId) {
@@ -93,9 +110,16 @@ function PaymentContent() {
       setTimeLeft((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
-          // Redirect atau tampilkan pesan timeout
-          alert('Waktu pembayaran habis. Silakan buat pesanan baru.');
-          router.push('/guest/menu');
+          // Tampilkan alert modal untuk timeout
+          setAlertDialog({
+            isOpen: true,
+            title: 'Waktu Habis',
+            message: 'Waktu pembayaran telah habis. Silakan buat pesanan baru.',
+            type: 'warning'
+          });
+          setTimeout(() => {
+            router.push('/guest/menu');
+          }, 2000);
           return 0;
         }
         return prev - 1;
@@ -177,8 +201,15 @@ function PaymentContent() {
       setOrder(data);
     } catch (error) {
       console.error('Error fetching order:', error);
-      alert('Gagal memuat detail pesanan');
-      router.push('/guest/orders');
+      setAlertDialog({
+        isOpen: true,
+        title: 'Gagal Memuat Data',
+        message: 'Gagal memuat detail pesanan. Silakan coba lagi.',
+        type: 'error'
+      });
+      setTimeout(() => {
+        router.push('/guest/orders');
+      }, 2000);
     } finally {
       setLoading(false);
     }
@@ -187,10 +218,6 @@ function PaymentContent() {
   // --- LOGIKA BACK DIPERBAIKI DI SINI ---
   const handleBackToOrder = async () => {
     if (!order) return;
-
-    if (!confirm('Kembali ke menu order? Pesanan saat ini akan dibatalkan agar Anda bisa mengubah menu.')) {
-      return;
-    }
 
     setCancelling(true);
 
@@ -239,15 +266,26 @@ function PaymentContent() {
 
     } catch (error) {
       console.error("Gagal membatalkan pesanan:", error);
-      alert("Gagal kembali ke menu order.");
+      setAlertDialog({
+        isOpen: true,
+        title: 'Gagal Kembali',
+        message: 'Gagal kembali ke menu order. Silakan coba lagi.',
+        type: 'error'
+      });
     } finally {
       setCancelling(false);
+      setConfirmBackDialog(false);
     }
   };
 
   const handlePayment = async () => {
     if (!selectedMethodId) {
-      alert('Silakan pilih metode pembayaran');
+      setAlertDialog({
+        isOpen: true,
+        title: 'Pilih Metode Pembayaran',
+        message: 'Silakan pilih metode pembayaran terlebih dahulu.',
+        type: 'warning'
+      });
       return;
     }
 
@@ -277,7 +315,12 @@ function PaymentContent() {
 
     } catch (error: any) {
       console.error('Payment error:', error);
-      alert(error.message || 'Gagal memproses pembayaran');
+      setAlertDialog({
+        isOpen: true,
+        title: 'Gagal Memproses Pembayaran',
+        message: error.message || 'Terjadi kesalahan saat memproses pembayaran. Silakan coba lagi.',
+        type: 'error'
+      });
     } finally {
       setProcessing(false);
     }
@@ -297,10 +340,6 @@ function PaymentContent() {
   };
 
   const handleManualConfirmPayment = async () => {
-    if (!confirm('Apakah Anda yakin sudah menyelesaikan pembayaran?')) {
-      return;
-    }
-
     setProcessing(true);
 
     try {
@@ -339,12 +378,19 @@ function PaymentContent() {
       // Tampilkan modal sukses
       setSuccessTransaksi(updatedTransaksi);
       setShowSuccessModal(true);
+      setConfirmPaymentDialog(false);
 
     } catch (error: any) {
       console.error('Error confirming payment:', error);
-      alert(error.message || 'Gagal mengkonfirmasi pembayaran. Pastikan pembayaran sudah dibuat.');
+      setAlertDialog({
+        isOpen: true,
+        title: 'Gagal Konfirmasi',
+        message: error.message || 'Gagal mengkonfirmasi pembayaran. Pastikan pembayaran sudah dibuat.',
+        type: 'error'
+      });
     } finally {
       setProcessing(false);
+      setConfirmPaymentDialog(false);
     }
   };
 
@@ -364,6 +410,41 @@ function PaymentContent() {
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-white flex flex-col">
       <Navbar searchTerm={searchTerm} onSearchChange={setSearchTerm} />
+
+      {/* Confirm Dialog - Back to Order */}
+      <ConfirmDialog
+        isOpen={confirmBackDialog}
+        onClose={() => setConfirmBackDialog(false)}
+        onConfirm={handleBackToOrder}
+        title="Kembali ke Menu Order?"
+        message="Pesanan saat ini akan dibatalkan agar Anda bisa mengubah menu. Apakah Anda yakin ingin melanjutkan?"
+        type="warning"
+        confirmText="Ya, Kembali"
+        cancelText="Batal"
+        loading={cancelling}
+      />
+
+      {/* Confirm Dialog - Manual Payment Confirmation */}
+      <ConfirmDialog
+        isOpen={confirmPaymentDialog}
+        onClose={() => setConfirmPaymentDialog(false)}
+        onConfirm={handleManualConfirmPayment}
+        title="Konfirmasi Pembayaran"
+        message="Apakah Anda yakin sudah menyelesaikan pembayaran?"
+        type="success"
+        confirmText="Ya, Sudah Bayar"
+        cancelText="Belum"
+        loading={processing}
+      />
+
+      {/* Alert Dialog */}
+      <AlertDialog
+        isOpen={alertDialog.isOpen}
+        onClose={() => setAlertDialog({ ...alertDialog, isOpen: false })}
+        title={alertDialog.title}
+        message={alertDialog.message}
+        type={alertDialog.type}
+      />
 
       {/* Modal Pembayaran Berhasil */}
       {showSuccessModal && (
@@ -432,7 +513,7 @@ function PaymentContent() {
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2 text-sm text-neutral-500">
               <button
-                onClick={handleBackToOrder}
+                onClick={() => setConfirmBackDialog(true)}
                 disabled={processing || cancelling}
                 className="hover:text-neutral-900 dark:hover:text-white transition-colors flex items-center gap-1"
               >
@@ -440,7 +521,7 @@ function PaymentContent() {
               </button>
               <ChevronRight className="w-3 h-3" />
               <button
-                onClick={handleBackToOrder}
+                onClick={() => setConfirmBackDialog(true)}
                 disabled={processing || cancelling}
                 className="hover:text-neutral-900 dark:hover:text-white transition-colors flex items-center gap-1"
               >
@@ -455,7 +536,7 @@ function PaymentContent() {
           </div>
 
           <button
-            onClick={handleBackToOrder}
+            onClick={() => setConfirmBackDialog(true)}
             disabled={processing || cancelling}
             className="flex items-center gap-2 hover:text-neutral-500 hover:underline transition-colors duration-300 group"
           >
@@ -522,7 +603,7 @@ function PaymentContent() {
                 </div>
 
                 <Button
-                  onClick={handleManualConfirmPayment}
+                  onClick={() => setConfirmPaymentDialog(true)}
                   disabled={processing}
                   className="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl transition-all"
                 >

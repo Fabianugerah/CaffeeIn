@@ -406,7 +406,7 @@ export default function CustomerOrderPage() {
                           >
                             <X className="w-5 h-5" />
                           </button>
-                          <p className="font-bold text-neutral-900 dark:text-white text-lg">
+                          <p className="font-medium text-neutral-900 dark:text-white text-lg">
                             Rp {(item.harga * item.jumlah).toLocaleString('id-ID')}
                           </p>
                         </div>
@@ -450,9 +450,9 @@ export default function CustomerOrderPage() {
                   </div>
 
                   <div className="border-t border-neutral-200 dark:border-neutral-800 pt-4 space-y-2">
-                    <div className="flex justify-between text-neutral-900 dark:text-white font-bold text-lg">
+                    <div className="flex justify-between text-neutral-900 dark:text-white text-lg">
                       <span className="font-semibold">Total</span>
-                      <span>Rp {getTotalPrice().toLocaleString('id-ID')}</span>
+                      <span className="font-medium">Rp {getTotalPrice().toLocaleString('id-ID')}</span>
                     </div>
                   </div>
 
